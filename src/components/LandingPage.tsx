@@ -1,17 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Users, ArrowRight, User, RefreshCw, Zap } from 'lucide-react';
+import { Play, Users, ArrowRight, User, RefreshCw, Zap, AlertCircle } from 'lucide-react';
 import { generateRandomName } from '../names';
 
 interface LandingPageProps {
   onCreateSession: (sessionName: string) => void;
   onJoinSession: (code: string, name: string) => void;
   initialCode?: string;
+  error?: string | null;
+  onClearError?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   onCreateSession,
   onJoinSession,
-  initialCode = ''
+  initialCode = '',
+  error = null,
+  onClearError
 }) => {
   const [mode, setMode] = useState<'menu' | 'host-setup' | 'join-setup'>('menu');
   const [sessionName, setSessionName] = useState('');
@@ -41,6 +45,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   }, [initialCode]);
 
   const handleDigitChange = (index: number, value: string) => {
+    if (onClearError) onClearError();
     const val = value.toUpperCase().slice(-1); // Only take the last character typed
     if (!/^[A-Z0-9]?$/.test(val)) return; // Allow only alphanumeric characters
 
@@ -55,6 +60,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   const handleDigitKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (onClearError) onClearError();
     if (e.key === 'Backspace') {
       if (!codeDigits[index] && index > 0) {
         // If current digit is empty, clear the previous digit and focus it
@@ -72,6 +78,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   const handleDigitPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    if (onClearError) onClearError();
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
     if (pastedText) {
@@ -107,6 +114,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   const isCodeComplete = codeDigits.join('').length === 6;
+
+  const handleBackToMenu = () => {
+    if (onClearError) onClearError();
+    setMode('menu');
+  };
 
   return (
     <div className="max-w-md w-full mx-auto px-4 py-8 animate-fade-slide-up">
@@ -167,6 +179,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {mode === 'host-setup' && (
         <form onSubmit={handleCreateSubmit} className="theme-bg-surface rounded-2xl border theme-border p-6 shadow-md space-y-4">
           <h2 className="text-xl font-bold theme-text-primary">Create Session</h2>
+          
+          {error && (
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold theme-text-secondary uppercase tracking-wider mb-2">
               Session Name
@@ -176,7 +196,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               required
               placeholder="e.g., Friday Warmup Quiz"
               value={sessionName}
-              onChange={(e) => setSessionName(e.target.value)}
+              onChange={(e) => {
+                if (onClearError) onClearError();
+                setSessionName(e.target.value);
+              }}
               className="w-full px-4 py-3 rounded-xl border theme-border theme-bg-elevated theme-text-primary focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)] transition-all text-sm"
               maxLength={40}
               autoFocus
@@ -186,8 +209,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              onClick={() => setMode('menu')}
-              className="flex-1 px-4 py-3 rounded-xl border border-red-500 bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white text-sm font-extrabold transition-all duration-150 cursor-pointer"
+              onClick={handleBackToMenu}
+              className="flex-1 px-4 py-3 rounded-xl border theme-border theme-text-secondary hover:theme-bg-elevated hover:theme-text-primary bg-transparent text-sm font-semibold transition cursor-pointer"
             >
               Cancel
             </button>
@@ -204,6 +227,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {mode === 'join-setup' && (
         <form onSubmit={handleJoinSubmit} className="theme-bg-surface rounded-2xl border theme-border p-6 shadow-md space-y-4">
           <h2 className="text-xl font-bold theme-text-primary">Join Session</h2>
+
+          {error && (
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold theme-text-secondary uppercase tracking-wider mb-2">
@@ -242,7 +272,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   type="text"
                   placeholder="Anonymous Animal"
                   value={participantName}
-                  onChange={(e) => setParticipantName(e.target.value)}
+                  onChange={(e) => {
+                    if (onClearError) onClearError();
+                    setParticipantName(e.target.value);
+                  }}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border theme-border theme-bg-elevated theme-text-primary focus:outline-none focus:ring-2 focus:ring-[var(--color-green)] transition-all text-sm"
                   maxLength={20}
                 />
@@ -251,7 +284,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 type="button"
                 onClick={handleGenerateName}
                 title="Generate funny name"
-                className="p-3 rounded-xl border-2 border-emerald-500 bg-emerald-500/5 hover:bg-emerald-500 hover:text-white text-emerald-600 dark:text-emerald-400 transition-all duration-150 flex items-center justify-center cursor-pointer"
+                className="p-3 rounded-xl border theme-border hover:theme-bg-elevated theme-text-primary transition-all duration-150 flex items-center justify-center cursor-pointer"
               >
                 <RefreshCw className="w-5 h-5" />
               </button>
@@ -261,8 +294,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              onClick={() => setMode('menu')}
-              className="flex-1 px-4 py-3 rounded-xl border border-red-500 bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white text-sm font-extrabold transition-all duration-150 cursor-pointer"
+              onClick={handleBackToMenu}
+              className="flex-1 px-4 py-3 rounded-xl border theme-border theme-text-secondary hover:theme-bg-elevated hover:theme-text-primary bg-transparent text-sm font-semibold transition cursor-pointer"
             >
               Cancel
             </button>

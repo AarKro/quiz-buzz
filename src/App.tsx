@@ -371,22 +371,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between theme-bg-primary transition-colors">
-      {/* Upper Alerts Banner */}
-      {errorMessage && (
-        <div className="bg-red-500 text-white px-4 py-3 text-sm font-semibold flex items-center justify-between shadow">
-          <div className="flex items-center gap-2 max-w-lg mx-auto w-full">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <span className="truncate">{errorMessage}</span>
-          </div>
-          <button
-            onClick={() => setErrorMessage(null)}
-            className="text-white hover:opacity-80 font-bold px-2"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
       {/* Main Container */}
       <div className="flex-1 flex flex-col justify-center py-4">
         {role === 'landing' && (
@@ -394,6 +378,8 @@ export default function App() {
             onCreateSession={handleCreateSession}
             onJoinSession={handleJoinSession}
             initialCode={urlInviteCode}
+            error={errorMessage}
+            onClearError={() => setErrorMessage(null)}
           />
         )}
 
