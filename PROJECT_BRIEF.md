@@ -17,6 +17,8 @@ During regular retrospectives and team meetings, warmup quizzes are a common ice
 - Anyone on the team can join a session instantly from a browser, no sign-up required
 - The first person to hit the buzzer is clearly identified
 - The host can reset the buzzer between questions
+- The host awards or denies points after each buzz, keeping score throughout the session
+- At the end of the session a fun animated scoreboard reveal shows the final ranking
 - No backend infrastructure required — the app is fully static and hosted on GitHub Pages
 - Anonymous participation: users choose a display name or get a random one generated
 
@@ -28,7 +30,6 @@ During regular retrospectives and team meetings, warmup quizzes are a common ice
 - No authentication or persistent user accounts
 - No server-side logic or databases
 - No QR code support (v1)
-- No scorekeeping or leaderboards (v1)
 - No Teams app integration / taskpane (v1)
 - No offline / PWA support (v1)
 
@@ -46,14 +47,17 @@ Remote team members participating in MS Teams meetings. Technical proficiency is
 - Enters a session name and creates a session, receiving a short invite code
 - Shares the invite code verbally or via Teams chat
 - Sees who buzzed in first
-- Can reset ("unbuzz") the session to prepare for the next question
-- Can end/close the session
+- Awards a point ("correct") or denies it ("wrong") after each buzz — the buzzer clears either way and the session returns to ready
+- Can reset the session without awarding a point (e.g. false start or skipped question)
+- Ends the session at any time, triggering the final scoreboard reveal for all participants
 
 ### Participant
 - Joins a session by entering the invite code (or following a pre-filled link)
 - Chooses a display name or accepts a randomly generated one
 - Hits the buzzer when they know the answer
 - Sees confirmation that their buzz was registered, or sees who was first if they were too late
+- Sees their own score update in real time after the host awards a point
+- Scores are otherwise hidden during the session — the final ranking is only revealed at the end
 
 ---
 
@@ -63,7 +67,7 @@ Remote team members participating in MS Teams meetings. Technical proficiency is
 - The host enters a session name on a setup screen, then creates the session
 - A 6-character uppercase alphanumeric invite code is generated (e.g. `X7K2AF`), derived from the PeerJS Peer ID — no lookup table or backend needed
 - Sessions support up to 30 participants; the host rejects `JOIN` messages once the cap is reached and late arrivals see a "Session is full" message
-- Participants can also join via a pre-filled URL: `https://<org>.github.io/quiz-buzz/?code=X7K2AF`
+- Participants can also join via a pre-filled URL: `https://aaron-kromer.github.io/quiz-buzz/?code=X7K2AF`
 
 ### Anonymous Identity
 - On joining, users pick a display name
@@ -76,9 +80,24 @@ Remote team members participating in MS Teams meetings. Technical proficiency is
 - All other participants immediately see that the buzzer has been taken (button disabled)
 - The winner's name is displayed prominently to everyone, including the host
 
+### Scoring
+- After someone buzzes in, the host sees two action buttons: **"Correct"** and **"Wrong"**
+- **Correct**: awards 1 point to the buzzer winner, broadcasts the updated score to all peers, then resets to ready
+- **Wrong**: no point awarded, broadcasts the result, then resets to ready
+- The host also retains a plain **"Reset"** button for false starts or skipped questions (no point awarded, no wrong recorded)
+- Each participant can see their own running score at all times; other participants' scores are hidden until the session ends
+- Scores are tracked as in-memory state on the host and broadcast to each participant individually so no one can see others' totals mid-session
+
+### Session End & Scoreboard Reveal
+- The host can press **"End Session"** at any time
+- The session transitions to a `finished` state; all participants are pushed to a results screen simultaneously
+- The results screen shows a full ranked leaderboard — this is the first time everyone sees all scores
+- The reveal is animated: participants are unveiled one by one from last place to first, building suspense, with the winner announced last with a distinct celebratory animation (confetti, crown icon, or similar)
+- The scoreboard is read-only; no further buzzing is possible once the session is finished
+
 ### Unbuzz / Reset
-- The host has a "Reset" / "Unbuzz" button
-- Pressing it returns the session to the ready state so the next question can begin
+- The host has a **"Reset"** button for false starts or skipped questions
+- Pressing it returns the session to the ready state with no score change
 - All participants' buzzers are re-enabled
 
 ### Real-Time — No Backend
@@ -133,9 +152,10 @@ On RESET from Host:
 
 ```ts
 type SessionState =
-  | { status: 'waiting' }                      // lobby, not yet ready
-  | { status: 'ready' }                        // buzzer enabled for all
-  | { status: 'buzzed'; winner: string }       // someone buzzed in
+  | { status: 'waiting' }                                        // lobby, not yet ready
+  | { status: 'ready' }                                          // buzzer enabled for all
+  | { status: 'buzzed'; winner: string }                         // someone buzzed in, host deciding
+  | { status: 'finished'; scores: Record<string, number> }       // session ended, reveal screen
 ```
 
 ### Message Protocol (DataChannel, JSON)
@@ -145,6 +165,7 @@ type SessionState =
 type HostMessage =
   | { type: 'STATE_UPDATE'; state: SessionState }
   | { type: 'PARTICIPANT_LIST'; names: string[] }
+  | { type: 'SCORE_UPDATE'; name: string; score: number }   // sent only to the relevant participant
   | { type: 'SESSION_FULL' }
 
 // Participant -> Host
@@ -166,18 +187,25 @@ type ParticipantMessage =
 - **Before first participant joins:** invite code displayed large and centered on screen
 - **After first participant joins:** invite code animates up into the right side of the header; session name appears in the left side of the header
 - **Header (both views):** `[Session Name]` (left) ··· `👥 count / 30` and `Invite code: XXXX` (right, host only)
-- Participant list with colored name chips
+- Participant list with colored name chips and their current scores (visible only to the host)
 - "Start Round" button (transitions session to `ready`)
-- Winner display when someone buzzes
-- "Unbuzz / Reset" button
-- "End Session" button
+- When buzzed: winner name displayed prominently + **"Correct"** and **"Wrong"** buttons + **"Reset"** (false start)
+- "End Session" button — transitions to the results screen for all participants
+
+### `/results` — Scoreboard Reveal (all participants)
+- Triggered simultaneously for all connected peers when the host ends the session
+- Animated ranked reveal: participants appear from last to first place, one by one
+- Winner is revealed last with a distinct celebratory animation
+- Final scores visible to everyone for the first time
+- Read-only — no further interaction possible
 
 ### `/join` — Participant View
 - Input for invite code (pre-filled if `?code=` URL param is present)
 - Input for display name with "Generate random name" button
 - After joining: large BUZZ button (disabled until host starts a round)
+- Own score displayed below the buzzer (e.g. `Your score: 3`) — other participants' scores are not shown
 - **Header:** `[Session Name]` (left) ··· `👥 count / 30` (right)
-- Winner announcement overlay when someone buzzes
+- Winner announcement overlay when someone buzzes, showing whether the host awarded the point or not
 
 ---
 
@@ -243,7 +271,10 @@ All animations are snappy and purposeful. Use CSS transitions/keyframes and the 
 | Session goes `ready` | Buzzer button pulses with a soft green glowing ring, 1.5 s looping keyframe |
 | BUZZ pressed — winner | Button flashes bright then locks; confetti burst; winner name slams in with scale-up + spring bounce |
 | BUZZ pressed — too late | Button shakes briefly (300 ms keyframe) then dims |
+| Host awards "Correct" | Score increments with a satisfying pop animation on the host's participant chip |
+| Host awards "Wrong" | Brief shake on the winner chip; buzzer state clears with a fade |
 | Reset / Unbuzz | Winner name and button state fade out; buzzer re-enables with a ripple, 250 ms ease-in-out |
+| Scoreboard reveal | Participants slide in one by one from last to first (staggered, ~400 ms each); winner entry gets confetti + crown, distinct scale-up |
 | Theme toggle | Background and text cross-fade, 150 ms |
 | Hover on interactive elements | Subtle lift (`translateY -1px`) + shadow increase, 100 ms |
 
@@ -291,8 +322,10 @@ All animations are snappy and purposeful. Use CSS transitions/keyframes and the 
 | 2 | P2P connection | Host creates session, participant connects, basic DataChannel messaging works |
 | 3 | Name & join flow | Landing page, name generation, join by code |
 | 4 | Buzzer core | Buzzer button, state sync, winner display, host reset |
-| 5 | Polish & QA | Responsive design, edge cases (host disconnects, late joins), browser testing |
-| 6 | Launch | Deployed to GitHub Pages, shared with team |
+| 5 | Scoring | Correct/Wrong buttons, per-participant score tracking, own-score display, session end |
+| 6 | Scoreboard reveal | Results screen with staggered animated reveal, winner celebration |
+| 7 | Polish & QA | Responsive design, edge cases (host disconnects, late joins), browser testing |
+| 8 | Launch | Deployed to GitHub Pages, shared with team |
 
 ---
 
@@ -310,10 +343,12 @@ quiz-buzz/
 │   ├── peer.ts                # PeerJS session logic
 │   ├── names.ts               # Random name generator
 │   ├── state.ts               # Session state machine
+│   ├── scores.ts              # Score tracking and broadcast logic
 │   ├── components/
 │   │   ├── LandingPage.ts
 │   │   ├── HostView.ts
-│   │   └── ParticipantView.ts
+│   │   ├── ParticipantView.ts
+│   │   └── ResultsScreen.ts   # Scoreboard reveal
 │   └── styles/
 │       └── main.css
 ├── index.html
@@ -329,7 +364,7 @@ quiz-buzz/
 
 ```bash
 # Clone the repo
-git clone https://github.com/<org>/quiz-buzz.git
+git clone https://github.com/aaron-kromer/quiz-buzz.git
 cd quiz-buzz
 
 # Install dependencies
