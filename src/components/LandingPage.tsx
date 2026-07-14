@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Play, Users, ArrowRight, User, RefreshCw, Zap } from 'lucide-react';
 import { generateRandomName } from '../names';
 
@@ -15,8 +15,76 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [mode, setMode] = useState<'menu' | 'host-setup' | 'join-setup'>('menu');
   const [sessionName, setSessionName] = useState('');
-  const [inviteCode, setInviteCode] = useState(initialCode);
   const [participantName, setParticipantName] = useState('');
+
+  // 6 digit invite code inputs
+  const [codeDigits, setCodeDigits] = useState<string[]>(() => {
+    const initial = initialCode.toUpperCase().slice(0, 6).split('');
+    while (initial.length < 6) {
+      initial.push('');
+    }
+    return initial;
+  });
+
+  const digitRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Sync initialCode changes (e.g. from URL pre-fill)
+  useEffect(() => {
+    if (initialCode) {
+      const parts = initialCode.toUpperCase().slice(0, 6).split('');
+      while (parts.length < 6) {
+        parts.push('');
+      }
+      setCodeDigits(parts);
+      setMode('join-setup');
+    }
+  }, [initialCode]);
+
+  const handleDigitChange = (index: number, value: string) => {
+    const val = value.toUpperCase().slice(-1); // Only take the last character typed
+    if (!/^[A-Z0-9]?$/.test(val)) return; // Allow only alphanumeric characters
+
+    const nextDigits = [...codeDigits];
+    nextDigits[index] = val;
+    setCodeDigits(nextDigits);
+
+    // Auto-focus next input if a value is typed
+    if (val && index < 5) {
+      digitRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleDigitKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (!codeDigits[index] && index > 0) {
+        // If current digit is empty, clear the previous digit and focus it
+        const nextDigits = [...codeDigits];
+        nextDigits[index - 1] = '';
+        setCodeDigits(nextDigits);
+        digitRefs.current[index - 1]?.focus();
+      } else {
+        // Clear current digit
+        const nextDigits = [...codeDigits];
+        nextDigits[index] = '';
+        setCodeDigits(nextDigits);
+      }
+    }
+  };
+
+  const handleDigitPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    if (pastedText) {
+      const nextDigits = pastedText.split('');
+      while (nextDigits.length < 6) {
+        nextDigits.push('');
+      }
+      setCodeDigits(nextDigits);
+      // Focus the last non-empty input or the last input
+      const lastIndex = Math.min(pastedText.length, 5);
+      digitRefs.current[lastIndex]?.focus();
+    }
+  };
 
   const handleGenerateName = () => {
     setParticipantName(generateRandomName());
@@ -31,12 +99,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const handleJoinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalCode = inviteCode.trim().toUpperCase();
+    const finalCode = codeDigits.join('').toUpperCase();
     const finalName = participantName.trim() || generateRandomName();
-    if (finalCode) {
+    if (finalCode.length === 6) {
       onJoinSession(finalCode, finalName);
     }
   };
+
+  const isCodeComplete = codeDigits.join('').length === 6;
 
   return (
     <div className="max-w-md w-full mx-auto px-4 py-8 animate-fade-slide-up">
@@ -117,13 +187,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={() => setMode('menu')}
-              className="flex-1 px-4 py-3 rounded-xl border theme-border theme-text-secondary hover:theme-bg-elevated text-sm font-semibold transition"
+              className="flex-1 px-4 py-3 rounded-xl border border-red-500 bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white text-sm font-extrabold transition-all duration-150 cursor-pointer"
             >
-              Back
+              Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 bg-[var(--color-blue)] hover:opacity-90 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition text-sm"
+              className="flex-1 bg-[var(--color-blue)] hover:opacity-90 text-white font-extrabold py-3 px-4 rounded-xl shadow-md transition text-sm cursor-pointer"
             >
               Create
             </button>
@@ -137,18 +207,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div>
             <label className="block text-xs font-semibold theme-text-secondary uppercase tracking-wider mb-2">
-              Invite Code
+              Invite Code (6 letters/digits)
             </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g., X7K2AF"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              className="w-full px-4 py-3 rounded-xl border theme-border theme-bg-elevated theme-text-primary font-mono-jetbrains tracking-widest text-lg uppercase focus:outline-none focus:ring-2 focus:ring-[var(--color-green)] transition-all text-center"
-              maxLength={6}
-              autoFocus={!initialCode}
-            />
+            {/* 6 split digit inputs */}
+            <div className="flex justify-between gap-2 my-2">
+              {codeDigits.map((digit, idx) => (
+                <input
+                  key={idx}
+                  ref={el => { digitRefs.current[idx] = el; }}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  onChange={e => handleDigitChange(idx, e.target.value)}
+                  onKeyDown={e => handleDigitKeyDown(idx, e)}
+                  onPaste={idx === 0 ? handleDigitPaste : undefined}
+                  className="w-12 h-12 text-center text-xl font-black rounded-xl border-2 theme-border theme-bg-elevated theme-text-primary focus:outline-none focus:border-[var(--color-green)] focus:ring-2 focus:ring-[var(--color-green)] transition-all uppercase font-mono-jetbrains"
+                  placeholder="•"
+                  required
+                />
+              ))}
+            </div>
           </div>
 
           <div>
@@ -173,7 +251,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 type="button"
                 onClick={handleGenerateName}
                 title="Generate funny name"
-                className="p-3 rounded-xl border theme-border hover:theme-bg-elevated theme-text-primary transition flex items-center justify-center cursor-pointer"
+                className="p-3 rounded-xl border-2 border-emerald-500 bg-emerald-500/5 hover:bg-emerald-500 hover:text-white text-emerald-600 dark:text-emerald-400 transition-all duration-150 flex items-center justify-center cursor-pointer"
               >
                 <RefreshCw className="w-5 h-5" />
               </button>
@@ -184,13 +262,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={() => setMode('menu')}
-              className="flex-1 px-4 py-3 rounded-xl border theme-border theme-text-secondary hover:theme-bg-elevated text-sm font-semibold transition"
+              className="flex-1 px-4 py-3 rounded-xl border border-red-500 bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white text-sm font-extrabold transition-all duration-150 cursor-pointer"
             >
-              Back
+              Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 bg-[var(--color-green)] hover:opacity-90 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition text-sm"
+              disabled={!isCodeComplete}
+              className={`flex-1 font-extrabold py-3 px-4 rounded-xl shadow-md transition text-sm cursor-pointer
+                ${isCodeComplete 
+                  ? 'bg-[var(--color-green)] hover:opacity-90 text-white' 
+                  : 'bg-neutral-500/20 text-neutral-400 cursor-not-allowed border theme-border'}`}
             >
               Join Game
             </button>
