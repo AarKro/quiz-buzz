@@ -173,7 +173,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           quiz<span className="text-[var(--text-accent-blue)]">-buzz</span>
         </h1>
         <p className="theme-text-secondary text-sm">
-          Lightweight, real-time buzzer for your team games
+          The real-time buzzer for team quizzes
         </p>
       </div>
 
@@ -191,7 +191,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
               <div>
                 <h3 className="font-bold text-lg theme-text-primary">Create a Session</h3>
-                <p className="theme-text-secondary text-xs">Host and moderate a buzzer match</p>
+                <p className="theme-text-secondary text-xs">Run the quiz and award points</p>
               </div>
             </div>
             <ArrowRight className="w-5 h-5 theme-text-secondary group-hover:translate-x-1 transition-transform" aria-hidden="true" />
@@ -212,7 +212,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
               <div>
                 <h3 className="font-bold text-lg theme-text-primary">Join a Session</h3>
-                <p className="theme-text-secondary text-xs">Buzz in to answer questions</p>
+                <p className="theme-text-secondary text-xs">Buzz in when you know the answer</p>
               </div>
             </div>
             <ArrowRight className="w-5 h-5 theme-text-secondary group-hover:translate-x-1 transition-transform" aria-hidden="true" />
@@ -284,7 +284,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <fieldset>
             <legend className="block text-xs font-semibold theme-text-secondary uppercase tracking-wider mb-2">
-              Invite Code (6 letters/digits)
+              Invite Code
             </legend>
             {/* 6 split digit inputs (flexible width so they fit 320px screens) */}
             <div className="flex justify-between gap-1.5 sm:gap-2 my-2">
@@ -313,7 +313,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div>
             <label htmlFor="display-name" className="block text-xs font-semibold theme-text-secondary uppercase tracking-wider mb-2">
-              Your Display Name
+              Display Name
             </label>
             <div className="flex gap-2">
               <div className="relative flex-1">

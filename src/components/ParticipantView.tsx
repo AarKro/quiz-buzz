@@ -99,9 +99,6 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center max-w-lg mx-auto w-full">
         {/* Welcome card */}
         <div className="mb-4 sm:mb-6">
-          <p className="theme-text-secondary text-xs uppercase tracking-wider font-semibold mb-1">
-            Logged in as
-          </p>
           <h2 className="text-xl font-extrabold theme-text-primary">
             {myName}
           </h2>
@@ -149,7 +146,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
             {isSomeoneElseWinner && (
               <span className="text-xl px-4 line-clamp-3 leading-snug">
                 {sessionState.status === 'buzzed' ? sessionState.winner : ''} <br />
-                <span className="text-sm font-semibold uppercase tracking-wider opacity-80">was first!</span>
+                <span className="text-sm font-semibold uppercase tracking-wider opacity-80">buzzed first</span>
               </span>
             )}
 
@@ -165,22 +162,17 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         <div className="h-12 flex items-center justify-center mt-2 sm:mt-4" role="status" aria-live="polite">
           {isBuzzerEnabled && (
             <p className="theme-text-primary font-semibold text-lg animate-pulse">
-              Hit the button as fast as you can!
-            </p>
-          )}
-          {isWaiting && (
-            <p className="theme-text-secondary text-sm">
-              Keep your finger ready for the next round
+              Know the answer? Buzz!
             </p>
           )}
           {isMeWinner && (
             <p className="text-[var(--text-accent-yellow)] font-bold text-lg animate-bounce">
-              Host is verifying your answer!
+              Give your answer!
             </p>
           )}
-          {isSomeoneElseWinner && (
-            <p className="text-[var(--text-accent-red)] font-semibold text-base">
-              A bit too slow. Wait for the host to reset.
+          {isSomeoneElseWinner && sessionState.status === 'buzzed' && (
+            <p className="theme-text-secondary text-sm">
+              {sessionState.winner} is answering
             </p>
           )}
         </div>

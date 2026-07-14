@@ -79,13 +79,13 @@ export const HostView: React.FC<HostViewProps> = ({
         {/* Big Large Invite Center Screen */}
         <div className="space-y-6">
           <p className="text-[var(--color-aubergine)] dark:text-[var(--text-accent-yellow)] font-extrabold uppercase tracking-widest text-xs">
-            Host Dashboard · {sessionName}
+            {sessionName}
           </p>
           <h2 className="text-2xl font-extrabold theme-text-primary">
             Waiting for participants...
           </h2>
           <p className="theme-text-secondary text-sm max-w-md mx-auto">
-            Share the invite code or URL with your team on MS Teams to get started. Up to {MAX_PARTICIPANTS} players can join.
+            Share the invite code or link with your team.
           </p>
 
           <div className="p-6 theme-bg-surface border-2 theme-border rounded-3xl shadow-md inline-block w-full">
@@ -111,7 +111,7 @@ export const HostView: React.FC<HostViewProps> = ({
         {/* Footer info */}
         <div className="text-xs theme-text-secondary flex items-center justify-center gap-2">
           <Shield className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>Peer-to-peer session — the authority runs in your browser</span>
+          <span>Peer-to-peer — nothing leaves your browser</span>
         </div>
       </div>
     );
@@ -168,19 +168,14 @@ export const HostView: React.FC<HostViewProps> = ({
         <div className="md:col-span-2 md:order-2 flex flex-col gap-4">
           {/* Main Action Console */}
           <div className="theme-bg-surface border theme-border rounded-2xl p-4 sm:p-6 shadow-sm flex-1 flex flex-col justify-between min-h-[300px] md:min-h-[320px]">
-            {/* Header/Status indication */}
-            <div className="text-center md:text-left">
-              <p className="theme-text-secondary text-xs font-semibold uppercase tracking-wider mb-1">
-                Buzzer Console Status
-              </p>
-              <div className="flex items-center justify-center md:justify-start gap-2">
-                <div className={`w-2.5 h-2.5 rounded-full ${statusDotClass}`} aria-hidden="true" />
-                <span className="font-bold theme-text-primary" role="status">
-                  {sessionState.status === 'waiting' && 'Lobby mode - waiting to start'}
-                  {isBuzzerActive && 'Buzzer active - players can buzz!'}
-                  {isSomeoneBuzzed && 'Buzzer locked! Winner deciding'}
-                </span>
-              </div>
+            {/* Status indication */}
+            <div className="flex items-center justify-center md:justify-start gap-2">
+              <div className={`w-2.5 h-2.5 rounded-full ${statusDotClass}`} aria-hidden="true" />
+              <span className="font-bold text-sm theme-text-primary" role="status">
+                {sessionState.status === 'waiting' && 'Waiting to start'}
+                {isBuzzerActive && 'Buzzers live'}
+                {isSomeoneBuzzed && 'Buzzer locked'}
+              </span>
             </div>
 
             {/* Display Big Center Status */}
@@ -190,13 +185,13 @@ export const HostView: React.FC<HostViewProps> = ({
                   <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-yellow-500/10 text-[var(--text-accent-yellow)] flex items-center justify-center mx-auto">
                     <Zap className="w-7 h-7 md:w-8 md:h-8" aria-hidden="true" />
                   </div>
-                  <h2 className="text-xl md:text-2xl font-extrabold theme-text-primary">Ready for next question?</h2>
+                  <h2 className="text-xl md:text-2xl font-extrabold theme-text-primary">Ready for the next question?</h2>
                   <button
                     onClick={onStartRound}
                     className="bg-[var(--color-green)] hover:opacity-95 text-white font-extrabold px-8 py-3.5 rounded-2xl shadow-lg transition-all transform hover:scale-105 active:scale-95 text-base flex items-center gap-2 mx-auto cursor-pointer"
                   >
                     <Zap className="w-5 h-5 fill-current" aria-hidden="true" />
-                    <span>Start Round<span className="hidden sm:inline"> (Buzzers On)</span></span>
+                    <span>Start Round</span>
                   </button>
                 </div>
               )}
@@ -206,10 +201,7 @@ export const HostView: React.FC<HostViewProps> = ({
                   <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-emerald-500/10 text-[var(--text-accent-green)] flex items-center justify-center mx-auto animate-pulse">
                     <Zap className="w-8 h-8 md:w-10 md:h-10 fill-current" aria-hidden="true" />
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-black theme-text-primary">Waiting for Buzz...</h2>
-                  <p className="theme-text-secondary text-sm">
-                    Players are looking at their screens. Hit Reset if you need to stop.
-                  </p>
+                  <h2 className="text-2xl md:text-3xl font-black theme-text-primary">Waiting for a buzz...</h2>
                   <button
                     onClick={onResetRound}
                     className="px-6 py-2.5 rounded-xl border theme-border hover:theme-bg-elevated theme-text-primary text-xs font-bold transition mx-auto cursor-pointer"
@@ -222,13 +214,13 @@ export const HostView: React.FC<HostViewProps> = ({
               {isSomeoneBuzzed && buzzedWinner && (
                 <div className="space-y-5 md:space-y-6 w-full max-w-md animate-spring-bounce">
                   <p className="text-[var(--text-accent-yellow)] font-bold text-xs uppercase tracking-widest">
-                    ⚡ Fast-fingered winner! ⚡
+                    ⚡ Buzzed first ⚡
                   </p>
                   <h2 className="text-3xl md:text-4xl font-black theme-text-primary leading-tight truncate px-2 md:px-4">
                     {buzzedWinner}
                   </h2>
                   <p className="theme-text-secondary text-sm">
-                    Award points or reset buzzer below.
+                    Was their answer right?
                   </p>
 
                   <div className="grid grid-cols-2 gap-3 md:gap-4">
@@ -253,23 +245,20 @@ export const HostView: React.FC<HostViewProps> = ({
                     className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl border theme-border hover:theme-bg-elevated theme-text-secondary text-xs font-bold transition mx-auto cursor-pointer"
                   >
                     <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
-                    <span>Reset (No penalty)</span>
+                    <span>Reset Buzzer</span>
                   </button>
                 </div>
               )}
             </div>
 
             {/* Bottom: End game control */}
-            <div className="border-t theme-border pt-4 flex items-center justify-between gap-2">
-              <span className="text-xs theme-text-secondary hidden sm:inline">
-                Finished asking questions?
-              </span>
+            <div className="border-t theme-border pt-4 flex justify-center sm:justify-end">
               <button
                 onClick={onEndSession}
-                className="bg-red-500/10 hover:bg-red-500 text-[var(--text-accent-red)] hover:text-white border border-red-500/20 text-xs font-extrabold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer mx-auto sm:mx-0 sm:ml-auto"
+                className="bg-red-500/10 hover:bg-red-500 text-[var(--text-accent-red)] hover:text-white border border-red-500/20 text-xs font-extrabold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Trophy className="w-4 h-4" aria-hidden="true" />
-                <span>End & Reveal Scoreboard</span>
+                <span>End & Reveal Scores</span>
               </button>
             </div>
           </div>

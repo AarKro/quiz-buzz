@@ -138,9 +138,11 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ scores, onRestart,
         <h1 className="text-3xl font-extrabold tracking-tight theme-text-primary">
           The Final Standings
         </h1>
-        <p className="theme-text-secondary text-sm mt-1">
-          {isWinnerRevealed ? 'Results are fully revealed!' : 'Revealing standings... hold your breath!'}
-        </p>
+        {!isWinnerRevealed && sortedPlayers.length > 0 && (
+          <p className="theme-text-secondary text-sm mt-1">
+            Revealing standings...
+          </p>
+        )}
         {!isWinnerRevealed && sortedPlayers.length > 0 && (
           <button
             onClick={skipReveal}
@@ -157,7 +159,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ scores, onRestart,
         <div className="space-y-3">
           {sortedPlayers.length === 0 ? (
             <div className="text-center py-10 theme-text-secondary">
-              No participant joined this session.
+              No participants joined.
             </div>
           ) : (
             sortedPlayers.map((player, idx) => {
@@ -213,10 +215,10 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ scores, onRestart,
             <Sparkles className="w-5 h-5 fill-current" aria-hidden="true" />
           </div>
           <p className="theme-text-primary font-black text-2xl truncate">
-            {winner.name} Wins!
+            {winner.name} wins!
           </p>
           <p className="theme-text-secondary text-xs mt-1">
-            With a staggering score of {winner.score} points!
+            {winner.score} {winner.score === 1 ? 'point' : 'points'}
           </p>
         </div>
       )}
@@ -234,7 +236,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ scores, onRestart,
         ) : (
           <>
             <p className="theme-text-secondary text-xs text-center">
-              The Host can start a new quiz session at any time. Thank you for playing!
+              Thanks for playing!
             </p>
             <button
               onClick={onRestart}
