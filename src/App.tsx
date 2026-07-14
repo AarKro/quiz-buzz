@@ -71,7 +71,9 @@ export default function App() {
   const showCornerToggle = role === 'landing' || hostFinished || participantFinished;
 
   return (
-    <div className="min-h-dvh flex flex-col theme-bg-primary transition-colors">
+    // overflow-x-clip: off-screen animations (buzz-card swipe) must not
+    // widen the page; clip doesn't create a scroll container
+    <div className="min-h-dvh flex flex-col theme-bg-primary transition-colors overflow-x-clip">
       {showCornerToggle && (
         <div className="fixed top-3 right-3 z-40">{themeToggle}</div>
       )}

@@ -85,14 +85,14 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
           </span>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold theme-text-secondary bg-[var(--bg-primary)] px-2.5 py-1 rounded-full border theme-border">
+          <div className="h-9 flex items-center gap-1.5 text-xs font-semibold theme-text-secondary bg-[var(--bg-primary)] px-2.5 rounded-full border theme-border">
             <Users className="w-3.5 h-3.5" aria-hidden="true" />
             <span>{participantCount}/{MAX_PARTICIPANTS}</span>
           </div>
           {themeToggle}
           <button
             onClick={onLeave}
-            className="p-2 rounded-lg text-[var(--text-accent-red)] hover:bg-red-500/10 transition cursor-pointer"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--text-accent-red)] hover:bg-red-500/10 transition cursor-pointer"
             title="Leave Session"
             aria-label="Leave Session"
           >

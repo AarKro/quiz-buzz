@@ -174,12 +174,12 @@ export const HostView: React.FC<HostViewProps> = ({
           <button
             onClick={handleCopyLink}
             title="Copy Invite Link"
-            className="p-2 rounded-lg border theme-border hover:theme-bg-elevated transition text-xs flex items-center gap-1.5 cursor-pointer theme-text-primary"
+            className="h-9 px-2.5 rounded-lg border theme-border hover:theme-bg-elevated transition text-xs flex items-center gap-1.5 cursor-pointer theme-text-primary"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-[var(--text-accent-green)]" aria-hidden="true" /> : <Copy className="w-3.5 h-3.5" aria-hidden="true" />}
             <span className="hidden md:inline">{copied ? 'Copied' : 'Link'}</span>
           </button>
-          <div className="flex items-center gap-1 text-xs font-semibold theme-text-secondary bg-[var(--bg-primary)] px-2 py-1 rounded-full border theme-border">
+          <div className="h-9 flex items-center gap-1 text-xs font-semibold theme-text-secondary bg-[var(--bg-primary)] px-2.5 rounded-full border theme-border">
             <Users className="w-3 h-3" aria-hidden="true" />
             <span>{participants.length}/{MAX_PARTICIPANTS}</span>
           </div>
@@ -193,9 +193,9 @@ export const HostView: React.FC<HostViewProps> = ({
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {/* Buzzer Console (first on mobile, right column on desktop) */}
         <div className="md:col-span-2 md:order-2 flex flex-col gap-4">
-          {/* Main Action Console (overflow-hidden clips the card swipe-out
-              animation at the console edge instead of the viewport) */}
-          <div className="theme-bg-surface border theme-border rounded-2xl p-4 sm:p-6 shadow-sm flex-1 flex flex-col justify-between min-h-[300px] md:min-h-[320px] overflow-hidden">
+          {/* Main Action Console. The card swipe-out flies past this panel;
+              body{overflow-x:clip} stops it from widening the page. */}
+          <div className="theme-bg-surface border theme-border rounded-2xl p-4 sm:p-6 shadow-sm flex-1 flex flex-col justify-between min-h-[300px] md:min-h-[320px]">
             {/* Status indication */}
             <div className="flex items-center justify-center md:justify-start gap-2">
               <div className={`w-2.5 h-2.5 rounded-full ${statusDotClass}`} aria-hidden="true" />
@@ -340,7 +340,7 @@ export const HostView: React.FC<HostViewProps> = ({
                     className={`
                       flex items-center justify-between p-2.5 rounded-xl border transition-all duration-150
                       ${isAnswering
-                        ? 'border-[var(--color-yellow)] bg-yellow-500/10 scale-[1.02] shadow-sm'
+                        ? 'border-[var(--color-yellow)] bg-yellow-500/10 shadow-sm'
                         : 'theme-border theme-bg-elevated/40'}
                     `}
                   >
