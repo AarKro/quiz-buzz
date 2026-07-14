@@ -63,3 +63,32 @@ npm run build
 # Deploy production build to GitHub Pages (gh-pages branch)
 npm run deploy
 ```
+
+---
+
+## 🔌 Connection Server (PeerJS)
+
+quiz-buzz uses WebRTC data channels for gameplay, but peers still need a small
+signaling ("broker") server to find each other. By default the app uses the
+**free public PeerJS cloud** (`0.peerjs.com`), which requires no setup but is
+occasionally down or blocked by corporate firewalls/proxies.
+
+If sessions fail to connect (you'll see *"Could not reach the connection
+server"*), you can point the app at a self-hosted
+[peerjs-server](https://github.com/peers/peerjs-server) via env vars at build
+time (e.g. in `.env.local`):
+
+```bash
+VITE_PEER_HOST=peer.example.com   # your peerjs-server host
+VITE_PEER_PORT=443                # default: 443
+VITE_PEER_PATH=/                  # default: /
+VITE_PEER_KEY=peerjs              # default: peerjs
+VITE_PEER_SECURE=true             # default: true ("false" for local http dev)
+```
+
+For local testing: `npx peerjs --port 9000` and set
+`VITE_PEER_HOST=127.0.0.1 VITE_PEER_PORT=9000 VITE_PEER_SECURE=false`.
+
+Note that even with a working broker, participants behind very restrictive
+NATs may need a TURN server to establish the actual WebRTC connection — STUN
+servers (Google + Cloudflare) are preconfigured, TURN is not.

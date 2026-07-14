@@ -22,7 +22,7 @@
 
 ## Stack
 
-- Vite + TypeScript (Svelte or React — not yet decided)
+- Vite + TypeScript + React 19
 - PeerJS for P2P messaging
 - Tailwind CSS v4 with CSS custom properties for theming
 - Inter + JetBrains Mono (Google Fonts), Lucide Icons
@@ -41,16 +41,21 @@
 quiz-buzz/
 ├── .opencode/          # opencode config
 ├── src/
-│   ├── main.ts         # entry point
-│   ├── peer.ts         # PeerJS session logic
-│   ├── names.ts        # random name generator
-│   ├── state.ts        # session state machine
-│   ├── scores.ts       # score tracking
-│   └── components/
-│       ├── LandingPage.ts
-│       ├── HostView.ts
-│       ├── ParticipantView.ts
-│       └── ResultsScreen.ts
+│   ├── main.tsx        # entry point
+│   ├── App.tsx         # theme + routing between views
+│   ├── peer.ts         # message protocol types, Peer factory, invite codes
+│   ├── names.ts        # random name generator + participant colors
+│   ├── hooks/
+│   │   ├── useTheme.ts             # dark/light mode toggle + persistence
+│   │   ├── useHostSession.ts       # host-side Peer, connections, state machine
+│   │   └── useParticipantSession.ts# participant-side Peer + host connection
+│   ├── components/
+│   │   ├── LandingPage.tsx
+│   │   ├── HostView.tsx
+│   │   ├── ParticipantView.tsx
+│   │   └── ResultsScreen.tsx
+│   └── styles/
+│       └── main.css    # theme tokens (incl. WCAG-safe accent text colors)
 ├── PROJECT_BRIEF.md    # full product specification
 └── AGENTS.md           # this file
 ```

@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/*
+ * Tailwind v4 defaults the `dark:` variant to prefers-color-scheme. The app
+ * toggles a `.dark` class on <html> instead, so bind the variant to it —
+ * otherwise `dark:` utilities ignore the manual theme toggle.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     /* Fonts */
@@ -13,13 +20,23 @@
     --text-secondary: #616061;
     --border: #e8e8e8;
 
-    /* Accent colors (shared) */
+    /* Accent colors (shared, used for fills/buttons) */
     --color-aubergine: #4a154b;
     --color-blue: #1264a3;
     --color-green: #007a5a;
     --color-yellow: #ecb22e;
     --color-red: #e01e5a;
-    
+
+    /*
+     * Accent colors for TEXT. These flip per theme so small text always
+     * meets WCAG AA (>= 4.5:1) on --bg-primary and --bg-surface.
+     * Light-mode values below; dark-mode overrides further down.
+     */
+    --text-accent-yellow: #8a6116; /* 5.2:1 on #f8f8f8 (raw #ecb22e is 1.8:1) */
+    --text-accent-blue: #1264a3;   /* 5.9:1 */
+    --text-accent-green: #007a5a;  /* 5.0:1 */
+    --text-accent-red: #b3134a;    /* 6.4:1 (raw #e01e5a is 4.4:1) */
+
     /* Participant colored chips */
     --color-orange: #de8300;
     --color-teal: #0f7b6c;
@@ -35,6 +52,11 @@
       --text-primary: #f2f3f5;
       --text-secondary: #9b9ea4;
       --border: #393c41;
+
+      --text-accent-yellow: #ecb22e; /* 8.8:1 on #1a1d21 */
+      --text-accent-blue: #59a9e0;   /* 6.6:1 (raw #1264a3 is 2.7:1) */
+      --text-accent-green: #2eb886;  /* 6.7:1 (raw #007a5a is 3.2:1) */
+      --text-accent-red: #ff7699;    /* 6.7:1 (raw #e01e5a is 3.6:1) */
     }
   }
 
@@ -46,6 +68,11 @@
     --text-primary: #f2f3f5;
     --text-secondary: #9b9ea4;
     --border: #393c41;
+
+    --text-accent-yellow: #ecb22e;
+    --text-accent-blue: #59a9e0;
+    --text-accent-green: #2eb886;
+    --text-accent-red: #ff7699;
   }
 
   html.light-mode {
@@ -55,6 +82,11 @@
     --text-primary: #1a1d21;
     --text-secondary: #616061;
     --border: #e8e8e8;
+
+    --text-accent-yellow: #8a6116;
+    --text-accent-blue: #1264a3;
+    --text-accent-green: #007a5a;
+    --text-accent-red: #b3134a;
   }
 
   body {
@@ -138,4 +170,15 @@
 /* Custom Font definitions */
 .font-mono-jetbrains {
   font-family: 'JetBrains Mono', monospace;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-slide-up,
+  .animate-pulse-green,
+  .animate-shake,
+  .animate-spring-bounce,
+  .animate-float {
+    animation: none;
+  }
 }
