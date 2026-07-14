@@ -67,7 +67,7 @@ Remote team members participating in MS Teams meetings. Technical proficiency is
 - The host enters a session name on a setup screen, then creates the session
 - A 6-character uppercase alphanumeric invite code is generated (e.g. `X7K2AF`), derived from the PeerJS Peer ID — no lookup table or backend needed
 - Sessions support up to 30 participants; the host rejects `JOIN` messages once the cap is reached and late arrivals see a "Session is full" message
-- Participants can also join via a pre-filled URL: `https://aaron-kromer.github.io/quiz-buzz/?code=X7K2AF`
+- Participants can also join via a pre-filled URL: `https://pages.github.axa.com/aaron-kromer/quiz-buzz/?code=X7K2AF`
 
 ### Anonymous Identity
 - On joining, users pick a display name
