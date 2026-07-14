@@ -26,12 +26,12 @@ export default function App() {
   useEffect(() => {
     const html = document.documentElement;
     if (darkMode) {
-      html.classList.remove('light-mode');
-      html.classList.add('dark-mode');
+      html.classList.remove('light-mode', 'light');
+      html.classList.add('dark-mode', 'dark');
       localStorage.setItem('theme', 'dark');
     } else {
-      html.classList.remove('dark-mode');
-      html.classList.add('light-mode');
+      html.classList.remove('dark-mode', 'dark');
+      html.classList.add('light-mode', 'light');
       localStorage.setItem('theme', 'light');
     }
   }, [darkMode]);
