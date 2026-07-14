@@ -30,6 +30,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     return initial;
   });
 
+  // Tracking focused field to hide/show the "•" placeholder dynamically
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+
   // Local Form Validations
   const [sessionNameError, setSessionNameError] = useState<string | null>(null);
   const [inviteCodeError, setInviteCodeError] = useState<string | null>(null);
@@ -137,8 +140,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     onJoinSession(finalCode, finalName);
   };
 
-  const isCodeComplete = codeDigits.join('').length === 6;
-
   const handleBackToMenu = () => {
     if (onClearError) onClearError();
     setSessionNameError(null);
@@ -238,7 +239,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={handleBackToMenu}
-              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-neutral-700 text-sm font-extrabold transition-all duration-150 cursor-pointer shadow-sm"
+              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-transparent text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-neutral-700 text-sm font-extrabold transition-all duration-150 cursor-pointer shadow-sm"
             >
               Cancel
             </button>
@@ -279,9 +280,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   onChange={e => handleDigitChange(idx, e.target.value)}
                   onKeyDown={e => handleDigitKeyDown(idx, e)}
                   onPaste={idx === 0 ? handleDigitPaste : undefined}
+                  onFocus={() => setFocusedIndex(idx)}
+                  onBlur={() => setFocusedIndex(null)}
                   className={`w-12 h-12 text-center text-xl font-black rounded-xl border-2 theme-bg-elevated theme-text-primary focus:outline-none focus:border-[var(--color-green)] focus:ring-2 focus:ring-[var(--color-green)] transition-all uppercase font-mono-jetbrains
                     ${inviteCodeError ? 'border-red-500' : 'theme-border'}`}
-                  placeholder="•"
+                  placeholder={focusedIndex === idx ? '' : '•'}
                 />
               ))}
             </div>
@@ -325,7 +328,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={handleBackToMenu}
-              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-neutral-700 text-sm font-extrabold transition-all duration-150 cursor-pointer shadow-sm"
+              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-transparent text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-neutral-700 text-sm font-extrabold transition-all duration-150 cursor-pointer shadow-sm"
             >
               Cancel
             </button>
