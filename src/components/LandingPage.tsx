@@ -30,6 +30,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     return initial;
   });
 
+  // Local Form Validations
+  const [sessionNameError, setSessionNameError] = useState<string | null>(null);
+  const [inviteCodeError, setInviteCodeError] = useState<string | null>(null);
+  const [participantNameError, setParticipantNameError] = useState<string | null>(null);
+
   const digitRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Sync initialCode changes (e.g. from URL pre-fill)
@@ -46,6 +51,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const handleDigitChange = (index: number, value: string) => {
     if (onClearError) onClearError();
+    setInviteCodeError(null); // Clear validation error as they write
     const val = value.toUpperCase().slice(-1); // Only take the last character typed
     if (!/^[A-Z0-9]?$/.test(val)) return; // Allow only alphanumeric characters
 
@@ -61,6 +67,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const handleDigitKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (onClearError) onClearError();
+    setInviteCodeError(null); // Clear validation error as they write
     if (e.key === 'Backspace') {
       if (!codeDigits[index] && index > 0) {
         // If current digit is empty, clear the previous digit and focus it
@@ -79,6 +86,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const handleDigitPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     if (onClearError) onClearError();
+    setInviteCodeError(null); // Clear validation error as they write
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
     if (pastedText) {
@@ -95,28 +103,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const handleGenerateName = () => {
     setParticipantName(generateRandomName());
+    setParticipantNameError(null); // Clear validation error on generate
   };
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (sessionName.trim()) {
-      onCreateSession(sessionName.trim());
+    if (!sessionName.trim()) {
+      setSessionNameError('Session name cannot be empty.');
+      return;
     }
+    onCreateSession(sessionName.trim());
   };
 
   const handleJoinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalCode = codeDigits.join('').toUpperCase();
-    const finalName = participantName.trim() || generateRandomName();
-    if (finalCode.length === 6) {
-      onJoinSession(finalCode, finalName);
+    const finalName = participantName.trim();
+
+    let hasError = false;
+
+    if (finalCode.length < 6) {
+      setInviteCodeError('Invite code must be exactly 6 characters.');
+      hasError = true;
     }
+
+    if (!finalName) {
+      setParticipantNameError('Display name cannot be empty.');
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    onJoinSession(finalCode, finalName);
   };
 
   const isCodeComplete = codeDigits.join('').length === 6;
 
   const handleBackToMenu = () => {
     if (onClearError) onClearError();
+    setSessionNameError(null);
+    setInviteCodeError(null);
+    setParticipantNameError(null);
     setMode('menu');
   };
 
@@ -180,10 +207,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <form onSubmit={handleCreateSubmit} className="theme-bg-surface rounded-2xl border theme-border p-6 shadow-md space-y-4">
           <h2 className="text-xl font-bold theme-text-primary">Create Session</h2>
           
-          {error && (
-            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold flex items-center gap-2">
+          {(error || sessionNameError) && (
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold flex items-center gap-2 animate-shake">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>{error}</span>
+              <span>{sessionNameError || error}</span>
             </div>
           )}
 
@@ -193,14 +220,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </label>
             <input
               type="text"
-              required
               placeholder="e.g., Friday Warmup Quiz"
               value={sessionName}
               onChange={(e) => {
                 if (onClearError) onClearError();
+                setSessionNameError(null); // Clear validation error as they write
                 setSessionName(e.target.value);
               }}
-              className="w-full px-4 py-3 rounded-xl border theme-border theme-bg-elevated theme-text-primary focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)] transition-all text-sm"
+              className={`w-full px-4 py-3 rounded-xl border theme-bg-elevated theme-text-primary focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)] transition-all text-sm
+                ${sessionNameError ? 'border-red-500' : 'theme-border'}`}
               maxLength={40}
               autoFocus
             />
@@ -228,10 +256,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <form onSubmit={handleJoinSubmit} className="theme-bg-surface rounded-2xl border theme-border p-6 shadow-md space-y-4">
           <h2 className="text-xl font-bold theme-text-primary">Join Session</h2>
 
-          {error && (
-            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold flex items-center gap-2">
+          {(error || inviteCodeError || participantNameError) && (
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold flex items-center gap-2 animate-shake">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>{error}</span>
+              <span>{inviteCodeError || participantNameError || error}</span>
             </div>
           )}
 
@@ -251,9 +279,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   onChange={e => handleDigitChange(idx, e.target.value)}
                   onKeyDown={e => handleDigitKeyDown(idx, e)}
                   onPaste={idx === 0 ? handleDigitPaste : undefined}
-                  className="w-12 h-12 text-center text-xl font-black rounded-xl border-2 theme-border theme-bg-elevated theme-text-primary focus:outline-none focus:border-[var(--color-green)] focus:ring-2 focus:ring-[var(--color-green)] transition-all uppercase font-mono-jetbrains"
+                  className={`w-12 h-12 text-center text-xl font-black rounded-xl border-2 theme-bg-elevated theme-text-primary focus:outline-none focus:border-[var(--color-green)] focus:ring-2 focus:ring-[var(--color-green)] transition-all uppercase font-mono-jetbrains
+                    ${inviteCodeError ? 'border-red-500' : 'theme-border'}`}
                   placeholder="•"
-                  required
                 />
               ))}
             </div>
@@ -274,9 +302,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   value={participantName}
                   onChange={(e) => {
                     if (onClearError) onClearError();
+                    setParticipantNameError(null); // Clear validation error as they write
                     setParticipantName(e.target.value);
                   }}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border theme-border theme-bg-elevated theme-text-primary focus:outline-none focus:ring-2 focus:ring-[var(--color-green)] transition-all text-sm"
+                  className={`w-full pl-10 pr-4 py-3 rounded-xl border theme-bg-elevated theme-text-primary focus:outline-none focus:ring-2 focus:ring-[var(--color-green)] transition-all text-sm
+                    ${participantNameError ? 'border-red-500' : 'theme-border'}`}
                   maxLength={20}
                 />
               </div>
@@ -301,11 +331,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </button>
             <button
               type="submit"
-              disabled={!isCodeComplete}
-              className={`flex-1 font-extrabold py-3 px-4 rounded-xl shadow-md transition text-sm cursor-pointer
-                ${isCodeComplete 
-                  ? 'bg-[var(--color-green)] hover:opacity-90 text-white' 
-                  : 'bg-neutral-500/20 text-neutral-400 cursor-not-allowed border theme-border'}`}
+              className="flex-1 font-extrabold py-3 px-4 rounded-xl shadow-md transition text-sm cursor-pointer bg-[var(--color-green)] hover:opacity-90 text-white"
             >
               Join Game
             </button>
