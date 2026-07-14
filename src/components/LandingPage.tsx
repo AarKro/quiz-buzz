@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Users, ArrowRight, User, RefreshCw, Zap, AlertCircle } from 'lucide-react';
+import { Play, Users, ArrowRight, ArrowLeft, User, RefreshCw, Zap, AlertCircle } from 'lucide-react';
 import { generateRandomName } from '../names';
 
 interface LandingPageProps {
@@ -167,7 +167,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="space-y-4">
           <button
             onClick={() => setMode('host-setup')}
-            className="w-full flex items-center justify-between p-5 rounded-2xl theme-bg-surface border-2 theme-border hover:border-[var(--color-blue)] transition-all duration-100 group shadow-sm text-left cursor-pointer"
+            className="w-full flex items-center justify-between p-5 rounded-2xl theme-bg-surface border-2 theme-border hover:border-[var(--color-blue)] hover:bg-[var(--bg-elevated)] active:bg-[var(--bg-primary)] hover:brightness-95 hover:dark:brightness-110 transition-all duration-150 group shadow-sm text-left cursor-pointer"
           >
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-blue-500/10 text-[var(--color-blue)]">
@@ -188,7 +188,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 setParticipantName(generateRandomName());
               }
             }}
-            className="w-full flex items-center justify-between p-5 rounded-2xl theme-bg-surface border-2 theme-border hover:border-[var(--color-green)] transition-all duration-100 group shadow-sm text-left cursor-pointer"
+            className="w-full flex items-center justify-between p-5 rounded-2xl theme-bg-surface border-2 theme-border hover:border-[var(--color-green)] hover:bg-[var(--bg-elevated)] active:bg-[var(--bg-primary)] hover:brightness-95 hover:dark:brightness-110 transition-all duration-150 group shadow-sm text-left cursor-pointer"
           >
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-emerald-500/10 text-[var(--color-green)]">
@@ -239,13 +239,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={handleBackToMenu}
-              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-transparent text-[#000000] dark:text-[#ffffff] hover:bg-slate-50 dark:hover:bg-neutral-700 text-sm font-extrabold transition-all duration-150 cursor-pointer shadow-sm"
+              className="flex-1 px-4 py-3 rounded-xl border theme-border bg-transparent theme-text-primary hover:bg-[var(--bg-elevated)] active:bg-[var(--bg-primary)] hover:brightness-90 hover:dark:brightness-125 flex items-center justify-center gap-1.5 text-sm font-extrabold transition-all duration-150 cursor-pointer shadow-sm"
             >
-              Cancel
+              <ArrowLeft className="w-4 h-4" />
+              Back
             </button>
             <button
               type="submit"
-              className="flex-1 bg-[var(--color-blue)] hover:opacity-90 text-white font-extrabold py-3 px-4 rounded-xl shadow-md transition text-sm cursor-pointer"
+              className="flex-1 bg-[var(--color-blue)] hover:bg-[var(--color-blue)]/85 active:bg-[var(--color-blue)]/70 hover:brightness-90 text-white font-extrabold py-3 px-4 rounded-xl shadow-md transition text-sm cursor-pointer"
             >
               Create
             </button>
@@ -317,7 +318,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 type="button"
                 onClick={handleGenerateName}
                 title="Generate funny name"
-                className="p-3 rounded-xl border theme-border hover:theme-bg-elevated theme-text-primary transition-all duration-150 flex items-center justify-center cursor-pointer"
+                className="p-3 rounded-xl border theme-border bg-transparent theme-text-primary hover:bg-[var(--bg-elevated)] active:bg-[var(--bg-primary)] hover:brightness-90 hover:dark:brightness-125 transition-all duration-150 flex items-center justify-center cursor-pointer"
               >
                 <RefreshCw className="w-5 h-5" />
               </button>
@@ -328,13 +329,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={handleBackToMenu}
-              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-transparent text-[#000000] dark:text-[#ffffff] hover:bg-slate-50 dark:hover:bg-neutral-700 text-sm font-extrabold transition-all duration-150 cursor-pointer shadow-sm"
+              className="flex-1 px-4 py-3 rounded-xl border theme-border bg-transparent theme-text-primary hover:bg-[var(--bg-elevated)] active:bg-[var(--bg-primary)] hover:brightness-90 hover:dark:brightness-125 flex items-center justify-center gap-1.5 text-sm font-extrabold transition-all duration-150 cursor-pointer shadow-sm"
             >
-              Cancel
+              <ArrowLeft className="w-4 h-4" />
+              Back
             </button>
             <button
               type="submit"
-              className="flex-1 font-extrabold py-3 px-4 rounded-xl shadow-md transition text-sm cursor-pointer bg-[var(--color-green)] hover:opacity-90 text-white"
+              className="flex-1 font-extrabold py-3 px-4 rounded-xl shadow-md transition text-sm cursor-pointer bg-[var(--color-green)] hover:bg-[var(--color-green)]/85 active:bg-[var(--color-green)]/70 hover:brightness-90 text-white"
             >
               Join Game
             </button>
