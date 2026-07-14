@@ -1,8 +1,8 @@
-# usales-quiz — Project Brief
+# quiz-buzz — Project Brief
 
 ## Overview
 
-**usales-quiz** is a lightweight, serverless buzzer web app designed for remote team meetings on Microsoft Teams. It solves the problem of participants shouting answers simultaneously during quiz-style warmup exercises by providing a fair, first-come-first-served digital buzzer. No accounts, no installation, no backend.
+**quiz-buzz** is a lightweight, serverless buzzer web app designed for remote team meetings on Microsoft Teams. It solves the problem of participants shouting answers simultaneously during quiz-style warmup exercises by providing a fair, first-come-first-served digital buzzer. No accounts, no installation, no backend.
 
 ---
 
@@ -63,7 +63,7 @@ Remote team members participating in MS Teams meetings. Technical proficiency is
 - The host enters a session name on a setup screen, then creates the session
 - A 6-character uppercase alphanumeric invite code is generated (e.g. `X7K2AF`), derived from the PeerJS Peer ID — no lookup table or backend needed
 - Sessions support up to 30 participants; the host rejects `JOIN` messages once the cap is reached and late arrivals see a "Session is full" message
-- Participants can also join via a pre-filled URL: `https://<org>.github.io/usales-quiz/?code=X7K2AF`
+- Participants can also join via a pre-filled URL: `https://<org>.github.io/quiz-buzz/?code=X7K2AF`
 
 ### Anonymous Identity
 - On joining, users pick a display name
@@ -96,7 +96,7 @@ The public PeerJS cloud signaling server is used for v1. If that proves unreacha
 
 ### Hosting
 - Static site hosted on **GitHub Pages**
-- Repository: `usales-quiz` (this repo)
+- Repository: `quiz-buzz` (this repo)
 - Deployment: push to `main` branch triggers GitHub Actions, which builds and publishes to `gh-pages`
 
 ### Stack
@@ -299,7 +299,7 @@ All animations are snappy and purposeful. Use CSS transitions/keyframes and the 
 ## Repository Structure (Proposed)
 
 ```
-usales-quiz/
+quiz-buzz/
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml         # GitHub Actions: build + deploy to gh-pages
@@ -329,8 +329,8 @@ usales-quiz/
 
 ```bash
 # Clone the repo
-git clone https://github.com/<org>/usales-quiz.git
-cd usales-quiz
+git clone https://github.com/<org>/quiz-buzz.git
+cd quiz-buzz
 
 # Install dependencies
 npm install
