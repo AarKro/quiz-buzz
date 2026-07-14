@@ -238,7 +238,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={handleBackToMenu}
-              className="flex-1 px-4 py-3 rounded-xl border theme-border theme-text-secondary hover:theme-bg-elevated hover:theme-text-primary bg-transparent text-sm font-semibold transition cursor-pointer"
+              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-neutral-700 text-sm font-extrabold transition-all duration-150 cursor-pointer shadow-sm"
             >
               Cancel
             </button>
@@ -325,7 +325,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={handleBackToMenu}
-              className="flex-1 px-4 py-3 rounded-xl border theme-border theme-text-secondary hover:theme-bg-elevated hover:theme-text-primary bg-transparent text-sm font-semibold transition cursor-pointer"
+              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-neutral-700 text-sm font-extrabold transition-all duration-150 cursor-pointer shadow-sm"
             >
               Cancel
             </button>
