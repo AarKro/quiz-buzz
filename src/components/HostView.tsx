@@ -193,8 +193,9 @@ export const HostView: React.FC<HostViewProps> = ({
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {/* Buzzer Console (first on mobile, right column on desktop) */}
         <div className="md:col-span-2 md:order-2 flex flex-col gap-4">
-          {/* Main Action Console */}
-          <div className="theme-bg-surface border theme-border rounded-2xl p-4 sm:p-6 shadow-sm flex-1 flex flex-col justify-between min-h-[300px] md:min-h-[320px]">
+          {/* Main Action Console (overflow-hidden clips the card swipe-out
+              animation at the console edge instead of the viewport) */}
+          <div className="theme-bg-surface border theme-border rounded-2xl p-4 sm:p-6 shadow-sm flex-1 flex flex-col justify-between min-h-[300px] md:min-h-[320px] overflow-hidden">
             {/* Status indication */}
             <div className="flex items-center justify-center md:justify-start gap-2">
               <div className={`w-2.5 h-2.5 rounded-full ${statusDotClass}`} aria-hidden="true" />
