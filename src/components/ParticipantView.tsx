@@ -68,7 +68,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         : 'bg-neutral-500/20 theme-text-secondary border-neutral-500/10 cursor-not-allowed shadow-none';
 
   return (
-    <div className="flex flex-col min-h-screen animate-fade-slide-up">
+    <div className="flex flex-col flex-1 animate-fade-slide-up">
       {/* Header */}
       <header className="sticky top-0 z-10 px-4 py-3 border-b theme-border theme-bg-surface flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
           </div>
           <button
             onClick={onLeave}
-            className="p-1.5 rounded-lg text-[var(--text-accent-red)] hover:bg-red-500/10 transition cursor-pointer"
+            className="p-2 rounded-lg text-[var(--text-accent-red)] hover:bg-red-500/10 transition cursor-pointer"
             title="Leave Session"
             aria-label="Leave Session"
           >
@@ -96,9 +96,9 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-lg mx-auto w-full">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center max-w-lg mx-auto w-full">
         {/* Welcome card */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <p className="theme-text-secondary text-xs uppercase tracking-wider font-semibold mb-1">
             Logged in as
           </p>
@@ -110,8 +110,10 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
           </p>
         </div>
 
-        {/* Big Buzzer Button Container */}
-        <div className="relative w-72 h-72 sm:w-80 sm:h-80 my-4 flex items-center justify-center">
+        {/* Big Buzzer Button Container. Sized against BOTH width and dynamic
+            viewport height so the buzzer, status and score all fit on short
+            phones (e.g. iPhone SE) without scrolling. */}
+        <div className="relative w-[min(20rem,84vw,46dvh)] aspect-square my-2 sm:my-4 flex items-center justify-center">
           {/* Pulsing ring if ready */}
           {isBuzzerEnabled && (
             <div className="absolute inset-0 rounded-full bg-[var(--color-green)] opacity-20 animate-pulse-green pointer-events-none" aria-hidden="true" />
@@ -122,7 +124,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
             disabled={sessionState.status === 'finished' || isWaiting}
             onClick={handleBuzz}
             className={`
-              w-64 h-64 sm:w-72 sm:h-72 rounded-full font-black text-3xl sm:text-4xl tracking-wider select-none
+              w-[min(18rem,75vw,41dvh)] aspect-square rounded-full font-black text-3xl sm:text-4xl tracking-wider select-none
               flex flex-col items-center justify-center gap-1 border-8 shadow-2xl transition-all duration-150
               outline-none focus:ring-4 focus:ring-offset-2 focus:ring-offset-[var(--bg-primary)] focus:ring-[var(--color-blue)]
               ${buzzerStateClass}
@@ -160,7 +162,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         </div>
 
         {/* Player Status Message */}
-        <div className="h-12 flex items-center justify-center mt-4" role="status" aria-live="polite">
+        <div className="h-12 flex items-center justify-center mt-2 sm:mt-4" role="status" aria-live="polite">
           {isBuzzerEnabled && (
             <p className="theme-text-primary font-semibold text-lg animate-pulse">
               Hit the button as fast as you can!
@@ -184,7 +186,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         </div>
 
         {/* Score display */}
-        <div className="mt-8 theme-bg-surface border theme-border rounded-2xl px-6 py-4 shadow-sm inline-flex items-center gap-3">
+        <div className="mt-4 sm:mt-8 theme-bg-surface border theme-border rounded-2xl px-6 py-3 sm:py-4 shadow-sm inline-flex items-center gap-3">
           <Award className="w-5 h-5 text-[var(--text-accent-yellow)]" aria-hidden="true" />
           <span className="font-semibold theme-text-secondary text-sm">Your Score:</span>
           <span className="text-2xl font-black theme-text-primary transition-all duration-300">

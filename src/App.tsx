@@ -68,8 +68,8 @@ export default function App() {
   const participantFinished = role === 'participant' && participant.sessionState.status === 'finished';
 
   return (
-    <div className="min-h-screen flex flex-col justify-between theme-bg-primary transition-colors">
-      <div className="flex-1 flex flex-col justify-center py-4">
+    <div className="min-h-dvh flex flex-col justify-between theme-bg-primary transition-colors">
+      <div className="flex-1 flex flex-col justify-center">
         {role === 'landing' && (
           <LandingPage
             onCreateSession={host.createSession}
@@ -132,7 +132,7 @@ export default function App() {
         )}
       </div>
 
-      <footer className="py-4 text-center">
+      <footer className="py-3 text-center">
         <button
           onClick={toggleTheme}
           aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}

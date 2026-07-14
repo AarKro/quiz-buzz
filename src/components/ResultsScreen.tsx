@@ -120,7 +120,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ scores, onRestart,
   const winner = sortedPlayers[sortedPlayers.length - 1];
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-between p-6 max-w-xl mx-auto w-full select-none overflow-hidden animate-fade-slide-up">
+    <div className="relative flex-1 flex flex-col justify-between p-4 sm:p-6 max-w-xl mx-auto w-full select-none overflow-hidden animate-fade-slide-up">
       {/* Confetti overlay background */}
       {isWinnerRevealed && !prefersReducedMotion && (
         <canvas
@@ -153,7 +153,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ scores, onRestart,
       </div>
 
       {/* Main Leaderboard */}
-      <div className="my-8 flex-1 flex flex-col justify-center max-w-md w-full mx-auto">
+      <div className="my-6 sm:my-8 flex-1 flex flex-col justify-center max-w-md w-full mx-auto">
         <div className="space-y-3">
           {sortedPlayers.length === 0 ? (
             <div className="text-center py-10 theme-text-secondary">
@@ -206,7 +206,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ scores, onRestart,
 
       {/* Celebratory Banner */}
       {isWinnerRevealed && winner && (
-        <div className="text-center bg-emerald-500/10 border border-emerald-500/20 p-5 rounded-2xl mb-8 animate-spring-bounce">
+        <div className="text-center bg-emerald-500/10 border border-emerald-500/20 p-4 sm:p-5 rounded-2xl mb-6 sm:mb-8 animate-spring-bounce">
           <div className="flex items-center justify-center gap-2 text-[var(--text-accent-green)] mb-1">
             <Sparkles className="w-5 h-5 fill-current" aria-hidden="true" />
             <span className="font-black text-sm uppercase tracking-wider">Congratulations!</span>

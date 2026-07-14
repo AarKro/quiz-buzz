@@ -163,9 +163,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   );
 
   return (
-    <div className="max-w-md w-full mx-auto px-4 py-8 animate-fade-slide-up">
+    <div className="max-w-md w-full mx-auto px-4 py-6 sm:py-8 animate-fade-slide-up">
       {/* Brand Logo & Title */}
-      <div className="text-center mb-10">
+      <div className="text-center mb-8 sm:mb-10">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--color-aubergine)] text-white shadow-lg mb-4 animate-float">
           <Zap className="w-9 h-9 fill-yellow-400 text-yellow-400" aria-hidden="true" />
         </div>
@@ -240,7 +240,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 setSessionNameError(null);
                 setSessionName(e.target.value);
               }}
-              className={`w-full px-4 py-3 rounded-xl border theme-bg-elevated theme-text-primary focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)] transition-all text-sm
+              className={`w-full px-4 py-3 rounded-xl border theme-bg-elevated theme-text-primary focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)] transition-all text-base sm:text-sm
                 ${sessionNameError ? 'border-red-500' : 'theme-border'}`}
               maxLength={40}
               autoFocus
@@ -286,8 +286,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <legend className="block text-xs font-semibold theme-text-secondary uppercase tracking-wider mb-2">
               Invite Code (6 letters/digits)
             </legend>
-            {/* 6 split digit inputs */}
-            <div className="flex justify-between gap-2 my-2">
+            {/* 6 split digit inputs (flexible width so they fit 320px screens) */}
+            <div className="flex justify-between gap-1.5 sm:gap-2 my-2">
               {codeDigits.map((digit, idx) => (
                 <input
                   key={idx}
@@ -303,7 +303,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   onPaste={handleDigitPaste}
                   onFocus={() => setFocusedIndex(idx)}
                   onBlur={() => setFocusedIndex(null)}
-                  className={`w-12 h-12 text-center text-xl font-black rounded-xl border-2 theme-bg-elevated theme-text-primary focus:outline-none focus:border-[var(--color-green)] focus:ring-2 focus:ring-[var(--color-green)] transition-all uppercase font-mono-jetbrains
+                  className={`w-full min-w-0 max-w-12 h-12 text-center text-xl font-black rounded-xl border-2 theme-bg-elevated theme-text-primary focus:outline-none focus:border-[var(--color-green)] focus:ring-2 focus:ring-[var(--color-green)] transition-all uppercase font-mono-jetbrains
                     ${inviteCodeError ? 'border-red-500' : 'theme-border'}`}
                   placeholder={focusedIndex === idx ? '' : '•'}
                 />
@@ -330,7 +330,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     setParticipantNameError(null);
                     setParticipantName(e.target.value);
                   }}
-                  className={`w-full pl-10 pr-4 py-3 rounded-xl border theme-bg-elevated theme-text-primary focus:outline-none focus:ring-2 focus:ring-[var(--color-green)] transition-all text-sm
+                  className={`w-full pl-10 pr-4 py-3 rounded-xl border theme-bg-elevated theme-text-primary focus:outline-none focus:ring-2 focus:ring-[var(--color-green)] transition-all text-base sm:text-sm
                     ${participantNameError ? 'border-red-500' : 'theme-border'}`}
                   maxLength={20}
                 />

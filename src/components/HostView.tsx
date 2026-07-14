@@ -64,7 +64,7 @@ export const HostView: React.FC<HostViewProps> = ({
   // Render the Invite Code Screen when no participants have joined yet
   if (!hasParticipants) {
     return (
-      <div className="flex flex-col min-h-screen justify-between p-6 max-w-lg mx-auto text-center animate-fade-slide-up">
+      <div className="flex flex-col flex-1 w-full justify-between gap-6 p-4 sm:p-6 max-w-lg mx-auto text-center animate-fade-slide-up">
         {/* Top: allow the host to back out before anyone joins */}
         <div className="flex justify-start">
           <button
@@ -129,7 +129,7 @@ export const HostView: React.FC<HostViewProps> = ({
       : 'bg-[var(--color-yellow)]';
 
   return (
-    <div className="flex flex-col min-h-screen animate-fade-slide-up">
+    <div className="flex flex-col flex-1 animate-fade-slide-up">
       {/* Header */}
       <header className="sticky top-0 z-10 px-4 py-3 border-b theme-border theme-bg-surface flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2">
@@ -148,7 +148,7 @@ export const HostView: React.FC<HostViewProps> = ({
           <button
             onClick={handleCopyLink}
             title="Copy Invite Link"
-            className="p-1.5 rounded-lg border theme-border hover:theme-bg-elevated transition text-xs flex items-center gap-1.5 cursor-pointer theme-text-primary"
+            className="p-2 rounded-lg border theme-border hover:theme-bg-elevated transition text-xs flex items-center gap-1.5 cursor-pointer theme-text-primary"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-[var(--text-accent-green)]" aria-hidden="true" /> : <Copy className="w-3.5 h-3.5" aria-hidden="true" />}
             <span className="hidden md:inline">{copied ? 'Copied' : 'Link'}</span>
@@ -160,17 +160,130 @@ export const HostView: React.FC<HostViewProps> = ({
         </div>
       </header>
 
-      {/* Main Host Area (Desktop 2-column layout, Mobile single column) */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Column: Participant Lobby list & scores */}
-        <div className="md:col-span-1 flex flex-col gap-4">
+      {/* Main Host Area (Desktop 2-column layout, Mobile single column).
+          On mobile the buzzer console comes FIRST so Start/Correct/Wrong stay
+          above the fold regardless of how many participants join. */}
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        {/* Buzzer Console (first on mobile, right column on desktop) */}
+        <div className="md:col-span-2 md:order-2 flex flex-col gap-4">
+          {/* Main Action Console */}
+          <div className="theme-bg-surface border theme-border rounded-2xl p-4 sm:p-6 shadow-sm flex-1 flex flex-col justify-between min-h-[300px] md:min-h-[320px]">
+            {/* Header/Status indication */}
+            <div className="text-center md:text-left">
+              <p className="theme-text-secondary text-xs font-semibold uppercase tracking-wider mb-1">
+                Buzzer Console Status
+              </p>
+              <div className="flex items-center justify-center md:justify-start gap-2">
+                <div className={`w-2.5 h-2.5 rounded-full ${statusDotClass}`} aria-hidden="true" />
+                <span className="font-bold theme-text-primary" role="status">
+                  {sessionState.status === 'waiting' && 'Lobby mode - waiting to start'}
+                  {isBuzzerActive && 'Buzzer active - players can buzz!'}
+                  {isSomeoneBuzzed && 'Buzzer locked! Winner deciding'}
+                </span>
+              </div>
+            </div>
+
+            {/* Display Big Center Status */}
+            <div className="my-6 md:my-8 text-center flex flex-col items-center justify-center flex-1">
+              {sessionState.status === 'waiting' && (
+                <div className="space-y-4">
+                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-yellow-500/10 text-[var(--text-accent-yellow)] flex items-center justify-center mx-auto">
+                    <Zap className="w-7 h-7 md:w-8 md:h-8" aria-hidden="true" />
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-extrabold theme-text-primary">Ready for next question?</h2>
+                  <button
+                    onClick={onStartRound}
+                    className="bg-[var(--color-green)] hover:opacity-95 text-white font-extrabold px-8 py-3.5 rounded-2xl shadow-lg transition-all transform hover:scale-105 active:scale-95 text-base flex items-center gap-2 mx-auto cursor-pointer"
+                  >
+                    <Zap className="w-5 h-5 fill-current" aria-hidden="true" />
+                    <span>Start Round<span className="hidden sm:inline"> (Buzzers On)</span></span>
+                  </button>
+                </div>
+              )}
+
+              {isBuzzerActive && (
+                <div className="space-y-4">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-emerald-500/10 text-[var(--text-accent-green)] flex items-center justify-center mx-auto animate-pulse">
+                    <Zap className="w-8 h-8 md:w-10 md:h-10 fill-current" aria-hidden="true" />
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-black theme-text-primary">Waiting for Buzz...</h2>
+                  <p className="theme-text-secondary text-sm">
+                    Players are looking at their screens. Hit Reset if you need to stop.
+                  </p>
+                  <button
+                    onClick={onResetRound}
+                    className="px-6 py-2.5 rounded-xl border theme-border hover:theme-bg-elevated theme-text-primary text-xs font-bold transition mx-auto cursor-pointer"
+                  >
+                    Reset Buzzer
+                  </button>
+                </div>
+              )}
+
+              {isSomeoneBuzzed && buzzedWinner && (
+                <div className="space-y-5 md:space-y-6 w-full max-w-md animate-spring-bounce">
+                  <p className="text-[var(--text-accent-yellow)] font-bold text-xs uppercase tracking-widest">
+                    ⚡ Fast-fingered winner! ⚡
+                  </p>
+                  <h2 className="text-3xl md:text-4xl font-black theme-text-primary leading-tight truncate px-2 md:px-4">
+                    {buzzedWinner}
+                  </h2>
+                  <p className="theme-text-secondary text-sm">
+                    Award points or reset buzzer below.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
+                    <button
+                      onClick={() => onAwardCorrect(buzzedWinner)}
+                      className="bg-[var(--color-green)] hover:opacity-95 text-white font-bold py-4 px-4 md:px-6 rounded-2xl shadow-md transition transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Check className="w-6 h-6 stroke-[3]" aria-hidden="true" />
+                      <span>Correct</span>
+                    </button>
+                    <button
+                      onClick={() => onAwardWrong(buzzedWinner)}
+                      className="bg-[var(--color-red)] hover:opacity-95 text-white font-bold py-4 px-4 md:px-6 rounded-2xl shadow-md transition transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <X className="w-6 h-6 stroke-[3]" aria-hidden="true" />
+                      <span>Wrong</span>
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={onResetRound}
+                    className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl border theme-border hover:theme-bg-elevated theme-text-secondary text-xs font-bold transition mx-auto cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Reset (No penalty)</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom: End game control */}
+            <div className="border-t theme-border pt-4 flex items-center justify-between gap-2">
+              <span className="text-xs theme-text-secondary hidden sm:inline">
+                Finished asking questions?
+              </span>
+              <button
+                onClick={onEndSession}
+                className="bg-red-500/10 hover:bg-red-500 text-[var(--text-accent-red)] hover:text-white border border-red-500/20 text-xs font-extrabold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer mx-auto sm:mx-0 sm:ml-auto"
+              >
+                <Trophy className="w-4 h-4" aria-hidden="true" />
+                <span>End & Reveal Scoreboard</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Participant Lobby list & scores (second on mobile, left column on desktop) */}
+        <div className="md:col-span-1 md:order-1 flex flex-col gap-4">
           <div className="theme-bg-surface border theme-border rounded-2xl p-4 shadow-sm">
             <h3 className="font-bold theme-text-primary text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
               <Users className="w-4 h-4 text-[var(--text-accent-blue)]" aria-hidden="true" />
               <span>Participants ({participants.length})</span>
             </h3>
 
-            <div className="space-y-2 max-h-[260px] md:max-h-[500px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[220px] md:max-h-[500px] overflow-y-auto pr-1">
               {participants.map((p, idx) => {
                 const color = getParticipantColor(idx);
                 const isCurrentlyBuzzed = isSomeoneBuzzed && buzzedWinner === p.name;
@@ -211,116 +324,6 @@ export const HostView: React.FC<HostViewProps> = ({
           </div>
         </div>
 
-        {/* Right Columns: Control Center */}
-        <div className="md:col-span-2 flex flex-col gap-4">
-          {/* Main Action Console */}
-          <div className="theme-bg-surface border theme-border rounded-2xl p-6 shadow-sm flex-1 flex flex-col justify-between min-h-[320px]">
-            {/* Header/Status indication */}
-            <div className="text-center md:text-left">
-              <p className="theme-text-secondary text-xs font-semibold uppercase tracking-wider mb-1">
-                Buzzer Console Status
-              </p>
-              <div className="flex items-center justify-center md:justify-start gap-2">
-                <div className={`w-2.5 h-2.5 rounded-full ${statusDotClass}`} aria-hidden="true" />
-                <span className="font-bold theme-text-primary" role="status">
-                  {sessionState.status === 'waiting' && 'Lobby mode - waiting to start'}
-                  {isBuzzerActive && 'Buzzer active - players can buzz!'}
-                  {isSomeoneBuzzed && 'Buzzer locked! Winner deciding'}
-                </span>
-              </div>
-            </div>
-
-            {/* Display Big Center Status */}
-            <div className="my-8 text-center flex flex-col items-center justify-center flex-1">
-              {sessionState.status === 'waiting' && (
-                <div className="space-y-4">
-                  <div className="w-16 h-16 rounded-full bg-yellow-500/10 text-[var(--text-accent-yellow)] flex items-center justify-center mx-auto">
-                    <Zap className="w-8 h-8" aria-hidden="true" />
-                  </div>
-                  <h2 className="text-2xl font-extrabold theme-text-primary">Ready for next question?</h2>
-                  <button
-                    onClick={onStartRound}
-                    className="bg-[var(--color-green)] hover:opacity-95 text-white font-extrabold px-8 py-3.5 rounded-2xl shadow-lg transition-all transform hover:scale-105 active:scale-95 text-base flex items-center gap-2 mx-auto cursor-pointer"
-                  >
-                    <Zap className="w-5 h-5 fill-current" aria-hidden="true" />
-                    <span>Start Round (Buzzers On)</span>
-                  </button>
-                </div>
-              )}
-
-              {isBuzzerActive && (
-                <div className="space-y-4">
-                  <div className="w-20 h-20 rounded-full bg-emerald-500/10 text-[var(--text-accent-green)] flex items-center justify-center mx-auto animate-pulse">
-                    <Zap className="w-10 h-10 fill-current" aria-hidden="true" />
-                  </div>
-                  <h2 className="text-3xl font-black theme-text-primary">Waiting for Buzz...</h2>
-                  <p className="theme-text-secondary text-sm">
-                    Players are looking at their screens. Hit Reset if you need to stop.
-                  </p>
-                  <button
-                    onClick={onResetRound}
-                    className="px-6 py-2 rounded-xl border theme-border hover:theme-bg-elevated theme-text-primary text-xs font-bold transition mx-auto cursor-pointer"
-                  >
-                    Reset Buzzer
-                  </button>
-                </div>
-              )}
-
-              {isSomeoneBuzzed && buzzedWinner && (
-                <div className="space-y-6 w-full max-w-md animate-spring-bounce">
-                  <p className="text-[var(--text-accent-yellow)] font-bold text-xs uppercase tracking-widest">
-                    ⚡ Fast-fingered winner! ⚡
-                  </p>
-                  <h2 className="text-4xl font-black theme-text-primary leading-tight truncate px-4">
-                    {buzzedWinner}
-                  </h2>
-                  <p className="theme-text-secondary text-sm">
-                    Award points or reset buzzer below.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      onClick={() => onAwardCorrect(buzzedWinner)}
-                      className="bg-[var(--color-green)] hover:opacity-95 text-white font-bold py-4 px-6 rounded-2xl shadow-md transition transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <Check className="w-6 h-6 stroke-[3]" aria-hidden="true" />
-                      <span>Correct</span>
-                    </button>
-                    <button
-                      onClick={() => onAwardWrong(buzzedWinner)}
-                      className="bg-[var(--color-red)] hover:opacity-95 text-white font-bold py-4 px-6 rounded-2xl shadow-md transition transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <X className="w-6 h-6 stroke-[3]" aria-hidden="true" />
-                      <span>Wrong</span>
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={onResetRound}
-                    className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl border theme-border hover:theme-bg-elevated theme-text-secondary text-xs font-bold transition mx-auto cursor-pointer"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
-                    <span>Reset (No penalty)</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Bottom: End game control */}
-            <div className="border-t theme-border pt-4 flex items-center justify-between">
-              <span className="text-xs theme-text-secondary">
-                Finished asking questions?
-              </span>
-              <button
-                onClick={onEndSession}
-                className="bg-red-500/10 hover:bg-red-500 text-[var(--text-accent-red)] hover:text-white border border-red-500/20 text-xs font-extrabold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <Trophy className="w-4 h-4" aria-hidden="true" />
-                <span>End & Reveal Scoreboard</span>
-              </button>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );
