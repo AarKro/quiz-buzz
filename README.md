@@ -4,7 +4,7 @@
 
 No accounts, no installation, and no backend database required — the app is fully static and runs entirely in the browser using WebRTC (PeerJS).
 
-🔗 **Live Application URL**: [https://pages.github.axa.com/aaron-kromer/quiz-buzz/](https://pages.github.axa.com/aaron-kromer/quiz-buzz/)
+🔗 **Live Application URL**: [https://aarkro.github.io/quiz-buzz/](https://aarkro.github.io/quiz-buzz/)
 
 ---
 
@@ -13,7 +13,7 @@ No accounts, no installation, and no backend database required — the app is fu
 ### 🎙️ For the Host (Setting up a Session)
 
 1. **Create the Session**:
-   - Go to [quiz-buzz](https://pages.github.axa.com/aaron-kromer/quiz-buzz/) and click **"Create a Session"**.
+   - Go to [quiz-buzz](https://aarkro.github.io/quiz-buzz/) and click **"Create a Session"**.
    - Enter a session name (e.g., `Friday Warmup Quiz`) and click **"Create"**.
 2. **Invite Your Team**:
    - You will see a large, centered **6-character invite code** (e.g., `X7K2AF`).
@@ -31,7 +31,7 @@ No accounts, no installation, and no backend database required — the app is fu
 ### 🕹️ For Participants (Joining a Session)
 
 1. **Join the Lobby**:
-   - Click the direct link shared by the host, or go to [quiz-buzz](https://pages.github.axa.com/aaron-kromer/quiz-buzz/), select **"Join a Session"**, and enter the **6-character Invite Code**.
+   - Click the direct link shared by the host, or go to [quiz-buzz](https://aarkro.github.io/quiz-buzz/), select **"Join a Session"**, and enter the **6-character Invite Code**.
 2. **Choose a Name**:
    - Type in a display name, or click the 🔄 refresh icon to auto-generate a funny anonymous animal name (e.g., `Sleepy Narwhal` or `Grumpy Capybara`). Click **"Join Game"**.
 3. **Buzz In**:
@@ -48,7 +48,7 @@ If you wish to run or build the application locally, follow these simple steps:
 
 ```bash
 # Clone the repository
-git clone https://github.com/aaron-kromer/quiz-buzz.git
+git clone https://github.com/AarKro/quiz-buzz.git
 cd quiz-buzz
 
 # Install package dependencies
