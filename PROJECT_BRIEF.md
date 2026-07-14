@@ -27,6 +27,10 @@ During regular retrospectives and team meetings, warmup quizzes are a common ice
 - No quiz content management (questions, answers, scoring) — this is purely a buzzer
 - No authentication or persistent user accounts
 - No server-side logic or databases
+- No QR code support (v1)
+- No scorekeeping or leaderboards (v1)
+- No Teams app integration / taskpane (v1)
+- No offline / PWA support (v1)
 
 ---
 
@@ -39,14 +43,14 @@ Remote team members participating in MS Teams meetings. Technical proficiency is
 ## User Roles
 
 ### Host
-- Creates a session and receives a short invite code
+- Enters a session name and creates a session, receiving a short invite code
 - Shares the invite code verbally or via Teams chat
 - Sees who buzzed in first
 - Can reset ("unbuzz") the session to prepare for the next question
 - Can end/close the session
 
 ### Participant
-- Joins a session by entering the invite code
+- Joins a session by entering the invite code (or following a pre-filled link)
 - Chooses a display name or accepts a randomly generated one
 - Hits the buzzer when they know the answer
 - Sees confirmation that their buzz was registered, or sees who was first if they were too late
@@ -56,9 +60,10 @@ Remote team members participating in MS Teams meetings. Technical proficiency is
 ## Core Features
 
 ### Session Management
-- Host creates a session; a short alphanumeric invite code is generated (e.g. `ZEBRA-42`)
-- Participants join by entering the code on the landing page
-- Session state is shared in real time across all connected participants
+- The host enters a session name on a setup screen, then creates the session
+- A 6-character uppercase alphanumeric invite code is generated (e.g. `X7K2AF`), derived from the PeerJS Peer ID — no lookup table or backend needed
+- Sessions support up to 30 participants; the host rejects `JOIN` messages once the cap is reached and late arrivals see a "Session is full" message
+- Participants can also join via a pre-filled URL: `https://<org>.github.io/usales-quiz/?code=X7K2AF`
 
 ### Anonymous Identity
 - On joining, users pick a display name
@@ -66,22 +71,24 @@ Remote team members participating in MS Teams meetings. Technical proficiency is
 - Names are ephemeral and tied only to the current session
 
 ### Buzzer
-- A large, prominent "BUZZ" button is shown to all participants once the session is in the ready state
+- A large, prominent "BUZZ" button is shown to all participants once the host starts a round
 - The first participant to press it wins the round
-- All other participants immediately see that the buzzer has been taken (button is disabled/grayed out)
+- All other participants immediately see that the buzzer has been taken (button disabled)
 - The winner's name is displayed prominently to everyone, including the host
 
 ### Unbuzz / Reset
-- The host has a "Reset" or "Unbuzz" button
+- The host has a "Reset" / "Unbuzz" button
 - Pressing it returns the session to the ready state so the next question can begin
 - All participants' buzzers are re-enabled
 
-### No Backend — Real-Time via Peer-to-Peer or BroadcastChannel
-- Since the app is hosted on GitHub Pages (static only), real-time sync must be achieved without a server
-- Recommended approach: **[Peer.js](https://peerjs.com/)** (WebRTC, no server needed beyond a free STUN/TURN relay) or a similar WebRTC-based P2P library
-- Alternative: **[PartyKit](https://www.partykit.io/)** or **[Ably](https://ably.com/)** free-tier WebSocket services (adds a third-party dependency but simplifies implementation)
-- The host's browser acts as the session authority (state owner)
-- Participants connect directly to the host peer
+### Real-Time — No Backend
+The app is hosted on GitHub Pages (static only), so real-time sync is achieved entirely in-browser using **[PeerJS](https://peerjs.com/)** (WebRTC DataChannel). The host's browser is the session authority; participants connect directly to the host peer.
+
+PeerJS requires a signaling server only for the initial WebRTC handshake (exchanging ICE candidates). Once the DataChannel is open, all app data flows directly between browsers and never touches any server. The signaling step uses HTTPS (port 443) and will pass through corporate proxies without issue. The subsequent peer-to-peer DataChannel uses DTLS over UDP where available, falling back to TCP/443 via TURN in stricter network environments.
+
+The public PeerJS cloud signaling server is used for v1. If that proves unreachable on the company network, the fallback is either:
+- Configuring a TURN relay (e.g. Metered OpenRelay, free tier)
+- Self-hosting `peerjs-server` (a small Node.js process, deployable to Render / Railway free tier) and pointing the client to it via a single config option
 
 ---
 
@@ -90,12 +97,12 @@ Remote team members participating in MS Teams meetings. Technical proficiency is
 ### Hosting
 - Static site hosted on **GitHub Pages**
 - Repository: `usales-quiz` (this repo)
-- Deployment: push to `main` branch, GitHub Actions publishes to `gh-pages`
+- Deployment: push to `main` branch triggers GitHub Actions, which builds and publishes to `gh-pages`
 
-### Stack Recommendations
-- **Framework**: Vanilla JS / TypeScript, or a lightweight framework like **Vite + Svelte** or **Vite + React** — keep bundle size minimal
+### Stack
+- **Framework**: Vite + Svelte or Vite + React (TypeScript) — keep bundle size minimal
 - **Real-time**: PeerJS (WebRTC DataChannel) — host peer is the source of truth
-- **Styling**: Tailwind CSS v4 (with CSS custom properties for the token system) or plain CSS; CSS variables for the full dark/light token set
+- **Styling**: Tailwind CSS v4 with CSS custom properties for the full token system
 - **Fonts**: Inter + JetBrains Mono via Google Fonts
 - **Icons**: Lucide Icons (SVG, tree-shaken)
 - **Animations**: CSS keyframes + Web Animations API; no heavy animation library needed
@@ -106,8 +113,8 @@ Remote team members participating in MS Teams meetings. Technical proficiency is
 ```
 [Host Browser]
    |-- creates PeerJS peer, gets Peer ID
-   |-- encodes Peer ID as invite code (short hash or base-36)
-   |-- displays invite code + QR code (optional)
+   |-- derives 6-char invite code from Peer ID (uppercase)
+   |-- displays invite code large and centered (no participants yet)
    |
    +<-- [Participant A connects via DataChannel]
    +<-- [Participant B connects via DataChannel]
@@ -126,9 +133,9 @@ On RESET from Host:
 
 ```ts
 type SessionState =
-  | { status: 'waiting' }         // lobby, not yet ready
-  | { status: 'ready' }           // buzzer enabled for all
-  | { status: 'buzzed'; winner: string }  // someone buzzed in
+  | { status: 'waiting' }                      // lobby, not yet ready
+  | { status: 'ready' }                        // buzzer enabled for all
+  | { status: 'buzzed'; winner: string }       // someone buzzed in
 ```
 
 ### Message Protocol (DataChannel, JSON)
@@ -138,6 +145,7 @@ type SessionState =
 type HostMessage =
   | { type: 'STATE_UPDATE'; state: SessionState }
   | { type: 'PARTICIPANT_LIST'; names: string[] }
+  | { type: 'SESSION_FULL' }
 
 // Participant -> Host
 type ParticipantMessage =
@@ -154,51 +162,43 @@ type ParticipantMessage =
 - Two options: **"Create Session"** (host) | **"Join Session"** (participant)
 
 ### `/host` — Host View
-- Displays invite code (large, copyable) and optional QR code
-- List of joined participants
+- **Setup screen:** input for session name before the session is created
+- **Before first participant joins:** invite code displayed large and centered on screen
+- **After first participant joins:** invite code animates up into the right side of the header; session name appears in the left side of the header
+- **Header (both views):** `[Session Name]` (left) ··· `👥 count / 30` and `Invite code: XXXX` (right, host only)
+- Participant list with colored name chips
 - "Start Round" button (transitions session to `ready`)
 - Winner display when someone buzzes
 - "Unbuzz / Reset" button
 - "End Session" button
 
 ### `/join` — Participant View
-- Input for invite code (if not pre-filled via URL param `?code=XXXX`)
-- Input for display name (with "Generate random name" button)
-- After joining: large BUZZ button (disabled until host starts round)
-- Winner announcement overlay when buzzed
-
----
-
-## URL Design
-
-Support deep-linking so the host can share a direct join URL:
-
-```
-https://<org>.github.io/usales-quiz/?code=ZEBRA42
-```
-
-This pre-fills the invite code field on the join page so participants only need to enter their name.
+- Input for invite code (pre-filled if `?code=` URL param is present)
+- Input for display name with "Generate random name" button
+- After joining: large BUZZ button (disabled until host starts a round)
+- **Header:** `[Session Name]` (left) ··· `👥 count / 30` (right)
+- Winner announcement overlay when someone buzzes
 
 ---
 
 ## UI/UX Requirements
 
 ### Responsive Layout
-- **Mobile-first but fully desktop-capable** — the layout must feel equally at home on a phone screen and a widescreen monitor
+- Mobile-first but fully desktop-capable — the layout must feel equally at home on a phone screen and a widescreen monitor
 - On mobile: single-column, full-screen buzzer dominates
-- On desktop: wider layout with more breathing room; host view can use a two-column split (participant list left, controls right)
-- Large, finger-friendly tap targets on touch devices; hover states and keyboard focus rings on desktop
+- On desktop: wider layout with more breathing room; host view uses a two-column split (participant list left, controls right)
+- Large, finger-friendly tap targets on touch; hover states and keyboard focus rings on desktop
+- Supported browsers: latest Chrome, Firefox, Safari, Edge
 
 ### Dark Mode / Light Mode
-- Support both themes; respect `prefers-color-scheme` by default
-- Provide a manual toggle in the UI so users can override their system preference
-- Persist the user's preference in `localStorage`
+- Respects `prefers-color-scheme` by default
+- Manual toggle in the UI to override system preference, persisted in `localStorage`
 
 ### Color System — Slack-inspired
 
-The palette uses neutral, near-black/near-white surfaces with a set of distinct accent colors. Accents are used for participant avatars/name chips, session codes, button highlights, and state indicators. Each participant in the lobby is automatically assigned one of the accent colors so the list feels lively and visually distinct.
+Neutral near-black/near-white surfaces for backgrounds and text; a set of distinct accent colors for state indicators, participant name chips, and interactive elements. Each participant is automatically assigned an accent color by join order so the lobby feels visually lively.
 
-#### Dark theme (default dark surfaces)
+#### Dark theme
 | Token | Value | Usage |
 |---|---|---|
 | `--bg-primary` | `#1a1d21` | App background |
@@ -219,89 +219,67 @@ The palette uses neutral, near-black/near-white surfaces with a set of distinct 
 | `--border` | `#e8e8e8` | Dividers |
 
 #### Accent palette (same in both themes)
-| Name | Hex | Usage example |
+| Name | Hex | Usage |
 |---|---|---|
 | Aubergine | `#4a154b` | Primary brand color (header, logo) |
 | Blue | `#1264a3` | Host actions, primary CTAs |
 | Green | `#007a5a` | Ready state, success |
 | Yellow | `#ecb22e` | Waiting / lobby state |
 | Red | `#e01e5a` | Buzzed-in state, destructive actions |
-| Orange | `#de8300` | Accent / alternate participant chips |
-| Teal | `#0f7b6c` | Accent / alternate participant chips |
-| Purple | `#6f42c1` | Accent / alternate participant chips |
+| Orange | `#de8300` | Participant name chips |
+| Teal | `#0f7b6c` | Participant name chips |
+| Purple | `#6f42c1` | Participant name chips |
 
-Accent assignment for participant name chips: rotate through the non-semantic accents (orange, teal, purple, blue) deterministically based on join order so the same participant always shows the same color within a session.
+Participant chip colors rotate through Orange, Teal, Purple, Blue deterministically by join order.
 
 ### Animations
 
-All animations should feel snappy and purposeful — not decorative noise. Use CSS transitions/animations and the Web Animations API; avoid heavy JS animation libraries.
+All animations are snappy and purposeful. Use CSS transitions/keyframes and the Web Animations API — no heavy JS animation libraries.
 
-| Trigger | Animation | Notes |
-|---|---|---|
-| Page load / route change | Fade + slide up (200 ms ease-out) | Panels enter from slightly below |
-| Participant joins lobby | Chip slides in from left, subtle scale-up (150 ms) | Each new name pops in individually |
-| Session goes `ready` | Buzzer button pulses with a soft glowing ring (looping, CSS keyframe) | Green glow, 1.5 s period |
-| BUZZ pressed (winner) | Button flashes bright, then locks; confetti burst (CSS or canvas) | Winner's name slams in with a scale-up + bounce (spring curve) |
-| BUZZ pressed (too slow) | Button shakes briefly (CSS keyframe, 300 ms) + dims | Communicates "too late" without being harsh |
-| Reset / Unbuzz | Button and winner name fade out; buzzer smoothly re-enables with a ripple effect | 250 ms ease-in-out |
-| Theme toggle | Background and text cross-fade (150 ms) | Avoid jarring flash |
-| Hover on interactive elements | Subtle lift (translateY -1px) + shadow increase | 100 ms ease |
+| Trigger | Animation |
+|---|---|
+| Page load / route change | Fade + slide up, 200 ms ease-out |
+| Participant joins lobby | Chip slides in from left with subtle scale-up, 150 ms |
+| Session goes `ready` | Buzzer button pulses with a soft green glowing ring, 1.5 s looping keyframe |
+| BUZZ pressed — winner | Button flashes bright then locks; confetti burst; winner name slams in with scale-up + spring bounce |
+| BUZZ pressed — too late | Button shakes briefly (300 ms keyframe) then dims |
+| Reset / Unbuzz | Winner name and button state fade out; buzzer re-enables with a ripple, 250 ms ease-in-out |
+| Theme toggle | Background and text cross-fade, 150 ms |
+| Hover on interactive elements | Subtle lift (`translateY -1px`) + shadow increase, 100 ms |
 
-### Visual States — Buzzer Button
+### Buzzer Button States
 
 | State | Appearance |
 |---|---|
-| `waiting` | Muted, flat — gray surface, secondary text "Waiting for host…" |
-| `ready` | Bold accent color (green), pulsing glow ring, large "BUZZ!" label |
-| `buzzed` (this user won) | Bright flash → locked gold/yellow, "You buzzed in!" label |
-| `buzzed` (another user won) | Dims to red tint, locked, "[Name] was first!" label |
-| Disabled / not joined | Fully dimmed, non-interactive |
+| `waiting` | Muted flat gray, secondary text "Waiting for host…" |
+| `ready` | Bold green, pulsing glow ring, large "BUZZ!" label |
+| `buzzed` — this user won | Bright flash → locked gold/yellow, "You buzzed in!" |
+| `buzzed` — another user won | Dims to red tint, locked, "[Name] was first!" |
+| Not yet joined | Fully dimmed, non-interactive |
 
 ### Typography
-- Font: **Inter** (Google Fonts) — clean, modern, highly legible at all sizes
-- Buzzer button label: 2–3 rem, bold
-- Winner announcement: 3–4 rem, extrabold, center-aligned
-- Invite code display: monospace (e.g. `JetBrains Mono` or system monospace), large, letter-spaced
+- Body: **Inter** (Google Fonts)
+- Invite code / monospace elements: **JetBrains Mono**, large, letter-spaced
+- Buzzer label: 2–3 rem bold
+- Winner announcement: 3–4 rem extrabold, center-aligned
 
 ### Iconography
-- Use a small icon set — **Lucide Icons** (tree-shakeable, SVG-based) for UI chrome
-- No icon libraries that add significant bundle weight
+- **Lucide Icons** — tree-shakeable SVG set, no bundle bloat
 
 ### Accessibility (baseline)
-- All interactive elements reachable by keyboard (Tab + Enter/Space)
-- Focus rings visible in both themes
-- Color is never the sole differentiator of state (always paired with text or icon)
-- Meets WCAG AA contrast for primary text on all backgrounds
-
-- Works in latest Chrome, Firefox, Safari, Edge
-
----
-
-## Out of Scope (v1)
-
-- Scorekeeping or leaderboards
-- Question/answer content management
-- Teams app integration (taskpane)
-- Accessibility audit (nice to have for v2)
-- Offline support / PWA
+- All interactive elements keyboard-navigable (Tab + Enter/Space)
+- Visible focus rings in both themes
+- State is never communicated by color alone — always paired with text or an icon
+- WCAG AA contrast for primary text on all background tokens
 
 ---
 
 ## Constraints
 
-- **No backend** — everything must run in the browser
-- **No user data storage** — nothing is persisted beyond the session lifetime
+- **No backend** — everything runs in the browser
+- **No user data storage** — nothing persisted beyond the session lifetime
 - **Free hosting** — GitHub Pages only
 - **No sign-in** — anonymous participation is a hard requirement
-
----
-
-## Open Questions
-
-1. **Real-time library choice**: PeerJS is the lowest-friction fully serverless option, but relies on a public PeerJS cloud server for signaling. Is using a free third-party signaling server acceptable, or does the org require a fully self-contained solution?
-2. **Invite code UX**: Should the invite code be human-readable (e.g. `GRUMPY-42`) or is a shorter opaque code (e.g. `X7K2`) preferred?
-3. **QR code**: Nice-to-have for the host screen so mobile participants can scan instead of typing — include in v1 or defer?
-4. **Participant limit**: Should there be a soft cap on participants per session (e.g. 30)?
 
 ---
 
@@ -366,7 +344,3 @@ npm run build
 # Preview production build locally
 npm run preview
 ```
-
----
-
-*Last updated: 2026-07-14 — added UI/UX design system, dark/light mode, animation spec*
