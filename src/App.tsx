@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Sun, Moon } from 'lucide-react';
 import { LandingPage } from './components/LandingPage';
 import { ParticipantView } from './components/ParticipantView';
 import { HostView } from './components/HostView';
 import { ResultsScreen } from './components/ResultsScreen';
+import { ThemeToggle } from './components/ThemeToggle';
 import { useTheme } from './hooks/useTheme';
 import { useHostSession } from './hooks/useHostSession';
 import { useParticipantSession } from './hooks/useParticipantSession';
@@ -52,8 +52,7 @@ export default function App() {
   };
 
   const handleParticipantLeave = () => {
-    const active = participant.sessionState.status;
-    if (active === 'ready' || active === 'buzzed') {
+    if (participant.sessionState.status === 'ready') {
       const confirmed = window.confirm('Leave the session while a round is running?');
       if (!confirmed) return;
     }
@@ -67,8 +66,16 @@ export default function App() {
   const hostFinished = role === 'host' && host.sessionState.status === 'finished';
   const participantFinished = role === 'participant' && participant.sessionState.status === 'finished';
 
+  const themeToggle = <ThemeToggle darkMode={darkMode} onToggle={toggleTheme} />;
+  // Landing and results have no header — pin the toggle to the corner there
+  const showCornerToggle = role === 'landing' || hostFinished || participantFinished;
+
   return (
-    <div className="min-h-dvh flex flex-col justify-between theme-bg-primary transition-colors">
+    <div className="min-h-dvh flex flex-col theme-bg-primary transition-colors">
+      {showCornerToggle && (
+        <div className="fixed top-3 right-3 z-40">{themeToggle}</div>
+      )}
+
       <div className="flex-1 flex flex-col justify-center">
         {role === 'landing' && (
           <LandingPage
@@ -96,6 +103,7 @@ export default function App() {
             onResetRound={host.resetRound}
             onEndSession={host.endSession}
             onCancelSession={handleHostRestart}
+            themeToggle={themeToggle}
           />
         )}
 
@@ -109,6 +117,7 @@ export default function App() {
             myScore={participant.myScore}
             onBuzz={participant.buzz}
             onLeave={handleParticipantLeave}
+            themeToggle={themeToggle}
           />
         )}
 
@@ -131,26 +140,6 @@ export default function App() {
           />
         )}
       </div>
-
-      <footer className="py-3 text-center">
-        <button
-          onClick={toggleTheme}
-          aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border theme-border theme-bg-surface hover:theme-bg-elevated theme-text-primary text-xs font-bold transition shadow-sm cursor-pointer"
-        >
-          {darkMode ? (
-            <>
-              <Sun className="w-3.5 h-3.5 text-[var(--text-accent-yellow)] fill-current" />
-              <span>Light Mode</span>
-            </>
-          ) : (
-            <>
-              <Moon className="w-3.5 h-3.5 text-slate-500 fill-current" />
-              <span>Dark Mode</span>
-            </>
-          )}
-        </button>
-      </footer>
     </div>
   );
 }

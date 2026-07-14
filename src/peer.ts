@@ -2,8 +2,10 @@ import { Peer, PeerOptions } from 'peerjs';
 
 export type SessionState =
   | { status: 'waiting' }
-  | { status: 'ready' }
-  | { status: 'buzzed'; winner: string }
+  // Buzzers live. `queue` holds everyone who buzzed, in buzz order; the
+  // first entry is currently answering. Buzzing stays open while a queue
+  // exists — later buzzers line up behind.
+  | { status: 'ready'; queue: string[] }
   | { status: 'finished'; scores: Record<string, number> };
 
 export interface Participant {

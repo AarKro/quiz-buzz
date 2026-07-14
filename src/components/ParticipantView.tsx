@@ -11,6 +11,7 @@ interface ParticipantViewProps {
   myScore: number;
   onBuzz: () => void;
   onLeave: () => void;
+  themeToggle?: React.ReactNode;
 }
 
 export const ParticipantView: React.FC<ParticipantViewProps> = ({
@@ -21,18 +22,27 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
   sessionState,
   myScore,
   onBuzz,
-  onLeave
+  onLeave,
+  themeToggle
 }) => {
   const [hasShaked, setHasShaked] = useState(false);
   const [buttonFlash, setButtonFlash] = useState(false);
   const buzzButtonRef = useRef<HTMLButtonElement>(null);
+
+  const queue = sessionState.status === 'ready' ? sessionState.queue : [];
+  const myQueuePosition = queue.indexOf(myName); // -1 = not in line
+  const canBuzz = sessionState.status === 'ready' && myQueuePosition === -1;
+  const isMeAnswering = myQueuePosition === 0;
+  const isMeQueued = myQueuePosition > 0;
+  const isWaiting = sessionState.status === 'waiting';
+  const answering = queue[0] ?? null;
 
   // Keyboard shortcut: buzz with Space/Enter from anywhere on the page
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return; // ignore held-down keys
       if (e.code === 'Space' || e.code === 'Enter') {
-        if (sessionState.status === 'ready' && document.activeElement !== buzzButtonRef.current) {
+        if (canBuzz && document.activeElement !== buzzButtonRef.current) {
           e.preventDefault();
           handleBuzz();
         }
@@ -43,7 +53,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
   }, [sessionState]);
 
   const handleBuzz = () => {
-    if (sessionState.status === 'ready') {
+    if (canBuzz) {
       setButtonFlash(true);
       onBuzz();
       setTimeout(() => setButtonFlash(false), 500);
@@ -54,17 +64,12 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
     }
   };
 
-  const isBuzzerEnabled = sessionState.status === 'ready';
-  const isMeWinner = sessionState.status === 'buzzed' && sessionState.winner === myName;
-  const isSomeoneElseWinner = sessionState.status === 'buzzed' && sessionState.winner !== myName;
-  const isWaiting = sessionState.status === 'waiting';
-
-  const buzzerStateClass = isBuzzerEnabled
+  const buzzerStateClass = canBuzz
     ? 'bg-[var(--color-green)] text-white border-emerald-400 active:scale-95 active:shadow-inner cursor-pointer'
-    : isMeWinner
+    : isMeAnswering
       ? 'bg-[var(--color-yellow)] text-slate-900 border-yellow-300 animate-spring-bounce cursor-default'
-      : isSomeoneElseWinner
-        ? 'bg-[var(--color-red)] text-white border-rose-400 opacity-60 cursor-default'
+      : isMeQueued
+        ? 'bg-[var(--color-blue)] text-white border-sky-400 cursor-default'
         : 'bg-neutral-500/20 theme-text-secondary border-neutral-500/10 cursor-not-allowed shadow-none';
 
   return (
@@ -79,11 +84,12 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
             {sessionName || 'Quiz Session'}
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-1.5 text-xs font-semibold theme-text-secondary bg-[var(--bg-primary)] px-2.5 py-1 rounded-full border theme-border">
             <Users className="w-3.5 h-3.5" aria-hidden="true" />
             <span>{participantCount}/{MAX_PARTICIPANTS}</span>
           </div>
+          {themeToggle}
           <button
             onClick={onLeave}
             className="p-2 rounded-lg text-[var(--text-accent-red)] hover:bg-red-500/10 transition cursor-pointer"
@@ -111,14 +117,14 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
             viewport height so the buzzer, status and score all fit on short
             phones (e.g. iPhone SE) without scrolling. */}
         <div className="relative w-[min(20rem,84vw,46dvh)] aspect-square my-2 sm:my-4 flex items-center justify-center">
-          {/* Pulsing ring if ready */}
-          {isBuzzerEnabled && (
+          {/* Pulsing ring while this player can still buzz */}
+          {canBuzz && (
             <div className="absolute inset-0 rounded-full bg-[var(--color-green)] opacity-20 animate-pulse-green pointer-events-none" aria-hidden="true" />
           )}
 
           <button
             ref={buzzButtonRef}
-            disabled={sessionState.status === 'finished' || isWaiting}
+            disabled={sessionState.status === 'finished' || isWaiting || isMeAnswering || isMeQueued}
             onClick={handleBuzz}
             className={`
               w-[min(18rem,75vw,41dvh)] aspect-square rounded-full font-black text-3xl sm:text-4xl tracking-wider select-none
@@ -129,25 +135,25 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
               ${hasShaked ? 'animate-shake' : ''}
             `}
           >
-            {isBuzzerEnabled && (
+            {canBuzz && (
               <>
                 <Zap className="w-12 h-12 fill-white animate-bounce" aria-hidden="true" />
                 <span>BUZZ!</span>
               </>
             )}
 
-            {isMeWinner && (
+            {isMeAnswering && (
               <>
                 <Award className="w-12 h-12 animate-bounce" aria-hidden="true" />
                 <span>YOU!</span>
               </>
             )}
 
-            {isSomeoneElseWinner && (
-              <span className="text-xl px-4 line-clamp-3 leading-snug">
-                {sessionState.status === 'buzzed' ? sessionState.winner : ''} <br />
-                <span className="text-sm font-semibold uppercase tracking-wider opacity-80">buzzed first</span>
-              </span>
+            {isMeQueued && (
+              <>
+                <span className="text-5xl sm:text-6xl">#{myQueuePosition + 1}</span>
+                <span className="text-sm font-semibold uppercase tracking-wider opacity-80">in line</span>
+              </>
             )}
 
             {isWaiting && (
@@ -160,19 +166,19 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 
         {/* Player Status Message */}
         <div className="h-12 flex items-center justify-center mt-2 sm:mt-4" role="status" aria-live="polite">
-          {isBuzzerEnabled && (
+          {canBuzz && queue.length === 0 && (
             <p className="theme-text-primary font-semibold text-lg animate-pulse">
               Know the answer? Buzz!
             </p>
           )}
-          {isMeWinner && (
+          {isMeAnswering && (
             <p className="text-[var(--text-accent-yellow)] font-bold text-lg animate-bounce">
               Give your answer!
             </p>
           )}
-          {isSomeoneElseWinner && sessionState.status === 'buzzed' && (
+          {!isMeAnswering && answering && (
             <p className="theme-text-secondary text-sm">
-              {sessionState.winner} is answering
+              {answering} is answering
             </p>
           )}
         </div>

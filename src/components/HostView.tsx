@@ -14,7 +14,19 @@ interface HostViewProps {
   onResetRound: () => void;
   onEndSession: () => void;
   onCancelSession: () => void;
+  themeToggle?: React.ReactNode;
 }
+
+/** One card in the buzz-queue stack. */
+const BuzzCard: React.FC<{ name: string; top: boolean }> = ({ name, top }) => (
+  <div
+    className={`h-24 md:h-28 rounded-2xl border-2 theme-bg-surface flex items-center justify-center gap-3 px-6 shadow-lg
+      ${top ? 'border-[var(--color-yellow)]' : 'theme-border'}`}
+  >
+    {top && <Zap className="w-6 h-6 text-[var(--text-accent-yellow)] fill-current flex-shrink-0" aria-hidden="true" />}
+    <span className="text-2xl md:text-3xl font-black theme-text-primary truncate">{name}</span>
+  </div>
+);
 
 export const HostView: React.FC<HostViewProps> = ({
   sessionName,
@@ -26,14 +38,19 @@ export const HostView: React.FC<HostViewProps> = ({
   onAwardWrong,
   onResetRound,
   onEndSession,
-  onCancelSession
+  onCancelSession,
+  themeToggle
 }) => {
   const [copied, setCopied] = useState(false);
+  // Card of the just-dismissed wrong answer, kept around for its exit animation
+  const [leavingCard, setLeavingCard] = useState<string | null>(null);
   const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const leavingResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
       if (copyResetRef.current) clearTimeout(copyResetRef.current);
+      if (leavingResetRef.current) clearTimeout(leavingResetRef.current);
     };
   }, []);
 
@@ -65,8 +82,8 @@ export const HostView: React.FC<HostViewProps> = ({
   if (!hasParticipants) {
     return (
       <div className="flex flex-col flex-1 w-full justify-between gap-6 p-4 sm:p-6 max-w-lg mx-auto text-center animate-fade-slide-up">
-        {/* Top: allow the host to back out before anyone joins */}
-        <div className="flex justify-start">
+        {/* Top: back out before anyone joins; theme toggle on the right */}
+        <div className="flex justify-between items-center">
           <button
             onClick={onCancelSession}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border theme-border hover:theme-bg-elevated theme-text-secondary text-xs font-bold transition cursor-pointer"
@@ -74,6 +91,7 @@ export const HostView: React.FC<HostViewProps> = ({
             <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Cancel Session</span>
           </button>
+          {themeToggle}
         </div>
 
         {/* Big Large Invite Center Screen */}
@@ -118,15 +136,23 @@ export const HostView: React.FC<HostViewProps> = ({
   }
 
   // Active lobby screen once at least 1 person joins
-  const isBuzzerActive = sessionState.status === 'ready';
-  const isSomeoneBuzzed = sessionState.status === 'buzzed';
-  const buzzedWinner = isSomeoneBuzzed ? sessionState.winner : null;
+  const isRoundLive = sessionState.status === 'ready';
+  const queue = sessionState.status === 'ready' ? sessionState.queue : [];
+  const answering = queue[0] ?? null;
 
-  const statusDotClass = isBuzzerActive
-    ? 'bg-[var(--color-green)] animate-ping'
-    : isSomeoneBuzzed
-      ? 'bg-[var(--color-red)]'
-      : 'bg-[var(--color-yellow)]';
+  const handleWrong = () => {
+    if (!answering) return;
+    setLeavingCard(answering);
+    onAwardWrong(answering);
+    if (leavingResetRef.current) clearTimeout(leavingResetRef.current);
+    leavingResetRef.current = setTimeout(() => setLeavingCard(null), 350);
+  };
+
+  const statusDotClass = !isRoundLive
+    ? 'bg-[var(--color-yellow)]'
+    : queue.length === 0
+      ? 'bg-[var(--color-green)] animate-ping'
+      : 'bg-[var(--color-red)]';
 
   return (
     <div className="flex flex-col flex-1 animate-fade-slide-up">
@@ -157,6 +183,7 @@ export const HostView: React.FC<HostViewProps> = ({
             <Users className="w-3 h-3" aria-hidden="true" />
             <span>{participants.length}/{MAX_PARTICIPANTS}</span>
           </div>
+          {themeToggle}
         </div>
       </header>
 
@@ -172,9 +199,9 @@ export const HostView: React.FC<HostViewProps> = ({
             <div className="flex items-center justify-center md:justify-start gap-2">
               <div className={`w-2.5 h-2.5 rounded-full ${statusDotClass}`} aria-hidden="true" />
               <span className="font-bold text-sm theme-text-primary" role="status">
-                {sessionState.status === 'waiting' && 'Waiting to start'}
-                {isBuzzerActive && 'Buzzers live'}
-                {isSomeoneBuzzed && 'Buzzer locked'}
+                {!isRoundLive && 'Waiting to start'}
+                {isRoundLive && queue.length === 0 && 'Buzzers live'}
+                {isRoundLive && queue.length > 0 && `Buzzers live · ${queue.length} in line`}
               </span>
             </div>
 
@@ -196,12 +223,23 @@ export const HostView: React.FC<HostViewProps> = ({
                 </div>
               )}
 
-              {isBuzzerActive && (
+              {isRoundLive && queue.length === 0 && (
                 <div className="space-y-4">
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-emerald-500/10 text-[var(--text-accent-green)] flex items-center justify-center mx-auto animate-pulse">
-                    <Zap className="w-8 h-8 md:w-10 md:h-10 fill-current" aria-hidden="true" />
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-black theme-text-primary">Waiting for a buzz...</h2>
+                  {leavingCard ? (
+                    // Last wrong answer is still swiping out — keep the stage
+                    <div className="relative h-24 md:h-28 w-full max-w-md mx-auto">
+                      <div className="absolute inset-x-0 top-0 animate-swipe-out">
+                        <BuzzCard name={leavingCard} top />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-emerald-500/10 text-[var(--text-accent-green)] flex items-center justify-center mx-auto animate-pulse">
+                        <Zap className="w-8 h-8 md:w-10 md:h-10 fill-current" aria-hidden="true" />
+                      </div>
+                      <h2 className="text-2xl md:text-3xl font-black theme-text-primary">Waiting for a buzz...</h2>
+                    </>
+                  )}
                   <button
                     onClick={onResetRound}
                     className="px-6 py-2.5 rounded-xl border theme-border hover:theme-bg-elevated theme-text-primary text-xs font-bold transition mx-auto cursor-pointer"
@@ -211,28 +249,46 @@ export const HostView: React.FC<HostViewProps> = ({
                 </div>
               )}
 
-              {isSomeoneBuzzed && buzzedWinner && (
-                <div className="space-y-5 md:space-y-6 w-full max-w-md animate-spring-bounce">
-                  <p className="text-[var(--text-accent-yellow)] font-bold text-xs uppercase tracking-widest">
-                    ⚡ Buzzed first ⚡
-                  </p>
-                  <h2 className="text-3xl md:text-4xl font-black theme-text-primary leading-tight truncate px-2 md:px-4">
-                    {buzzedWinner}
-                  </h2>
-                  <p className="theme-text-secondary text-sm">
-                    Was their answer right?
-                  </p>
+              {isRoundLive && queue.length > 0 && (
+                <div className="space-y-5 md:space-y-6 w-full max-w-md">
+                  {/* Buzz-queue card stack: top card is answering, the rest
+                      peek out behind it in buzz order */}
+                  <div className="relative h-36 md:h-44">
+                    {leavingCard && (
+                      <div className="absolute inset-x-0 top-0 z-40 animate-swipe-out">
+                        <BuzzCard name={leavingCard} top />
+                      </div>
+                    )}
+                    {queue.slice(0, 3).map((name, i) => (
+                      <div
+                        key={name}
+                        className="absolute inset-x-0 top-0 transition-all duration-300 animate-card-enter"
+                        style={{
+                          transform: `translateY(${i * 20}px) scale(${1 - i * 0.05})`,
+                          zIndex: 30 - i * 10,
+                          opacity: 1 - i * 0.3
+                        }}
+                      >
+                        <BuzzCard name={name} top={i === 0} />
+                      </div>
+                    ))}
+                    {queue.length > 3 && (
+                      <p className="absolute -bottom-1 inset-x-0 text-center text-xs font-semibold theme-text-secondary">
+                        +{queue.length - 3} more in line
+                      </p>
+                    )}
+                  </div>
 
                   <div className="grid grid-cols-2 gap-3 md:gap-4">
                     <button
-                      onClick={() => onAwardCorrect(buzzedWinner)}
+                      onClick={() => answering && onAwardCorrect(answering)}
                       className="bg-[var(--color-green)] hover:opacity-95 text-white font-bold py-4 px-4 md:px-6 rounded-2xl shadow-md transition transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Check className="w-6 h-6 stroke-[3]" aria-hidden="true" />
                       <span>Correct</span>
                     </button>
                     <button
-                      onClick={() => onAwardWrong(buzzedWinner)}
+                      onClick={handleWrong}
                       className="bg-[var(--color-red)] hover:opacity-95 text-white font-bold py-4 px-4 md:px-6 rounded-2xl shadow-md transition transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <X className="w-6 h-6 stroke-[3]" aria-hidden="true" />
@@ -275,13 +331,14 @@ export const HostView: React.FC<HostViewProps> = ({
             <div className="space-y-2 max-h-[220px] md:max-h-[500px] overflow-y-auto pr-1">
               {participants.map((p, idx) => {
                 const color = getParticipantColor(idx);
-                const isCurrentlyBuzzed = isSomeoneBuzzed && buzzedWinner === p.name;
+                const queuePosition = queue.indexOf(p.name);
+                const isAnswering = queuePosition === 0;
                 return (
                   <div
                     key={p.id}
                     className={`
                       flex items-center justify-between p-2.5 rounded-xl border transition-all duration-150
-                      ${isCurrentlyBuzzed
+                      ${isAnswering
                         ? 'border-[var(--color-yellow)] bg-yellow-500/10 scale-[1.02] shadow-sm'
                         : 'theme-border theme-bg-elevated/40'}
                     `}
@@ -297,9 +354,14 @@ export const HostView: React.FC<HostViewProps> = ({
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {isCurrentlyBuzzed && (
+                      {isAnswering && (
                         <span className="text-[var(--text-accent-yellow)] animate-bounce">
                           <Zap className="w-4 h-4 fill-current" aria-hidden="true" />
+                        </span>
+                      )}
+                      {queuePosition > 0 && (
+                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-slate-500/10 theme-text-secondary">
+                          #{queuePosition + 1}
                         </span>
                       )}
                       <span className="text-xs font-black px-2 py-0.5 rounded-full bg-slate-500/10 theme-text-primary">

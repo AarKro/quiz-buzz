@@ -119,10 +119,11 @@ export function useHostSession() {
       conn.send(welcome);
       broadcast({ type: 'PARTICIPANT_LIST', names: next.map(p => p.name) });
     } else if (msg.type === 'BUZZ') {
-      if (sessionStateRef.current.status !== 'ready') return; // buzzer locked
+      const state = sessionStateRef.current;
+      if (state.status !== 'ready') return; // round not running
       const player = participantsRef.current.find(p => p.id === conn.peer);
-      if (!player) return;
-      transitionTo({ status: 'buzzed', winner: player.name });
+      if (!player || state.queue.includes(player.name)) return; // already in line
+      transitionTo({ status: 'ready', queue: [...state.queue, player.name] });
     }
   };
 
@@ -140,10 +141,10 @@ export function useHostSession() {
     setParticipants(next);
     broadcast({ type: 'PARTICIPANT_LIST', names: next.map(p => p.name) });
 
-    // If the player currently holding the buzzer leaves, unlock the round.
+    // Drop a leaving player out of the buzz queue.
     const state = sessionStateRef.current;
-    if (state.status === 'buzzed' && state.winner === leaving.name) {
-      transitionTo({ status: 'waiting' });
+    if (state.status === 'ready' && state.queue.includes(leaving.name)) {
+      transitionTo({ status: 'ready', queue: state.queue.filter(n => n !== leaving.name) });
     }
   };
 
@@ -203,9 +204,10 @@ export function useHostSession() {
     });
   };
 
-  const startRound = () => transitionTo({ status: 'ready' });
+  const startRound = () => transitionTo({ status: 'ready', queue: [] });
   const resetRound = () => transitionTo({ status: 'waiting' });
 
+  /** Top of the queue answered correctly: award the point, clear the round. */
   const awardCorrect = (winnerName: string) => {
     const next = participantsRef.current.map(p => {
       if (p.name !== winnerName) return p;
@@ -221,7 +223,12 @@ export function useHostSession() {
     transitionTo({ status: 'waiting' });
   };
 
-  const awardWrong = () => transitionTo({ status: 'waiting' });
+  /** Top of the queue answered wrong: pop them, the next in line is up. */
+  const awardWrong = () => {
+    const state = sessionStateRef.current;
+    if (state.status !== 'ready' || state.queue.length === 0) return;
+    transitionTo({ status: 'ready', queue: state.queue.slice(1) });
+  };
 
   const endSession = () => {
     const scores: Record<string, number> = {};
