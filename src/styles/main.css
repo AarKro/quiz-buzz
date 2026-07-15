@@ -47,6 +47,16 @@
     --player-2: #0f7b6c; /* teal   */
     --player-3: #6f42c1; /* purple */
     --player-4: #1264a3; /* blue   */
+
+    /*
+     * Full-bleed backgrounds for the participant's "jersey" screen.
+     * Deep enough that white text clears 4.5:1; identical in both themes
+     * (a colored room works on either ground), so no dark overrides.
+     */
+    --player-1-strong: #b45309;
+    --player-2-strong: #0f7b6c;
+    --player-3-strong: #6f42c1;
+    --player-4-strong: #1264a3;
   }
 
   /* Respect prefers-color-scheme by default, overridden by .dark class on <html> */

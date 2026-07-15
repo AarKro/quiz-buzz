@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Users, Zap, Award, LogOut } from 'lucide-react';
 import { SessionState, MAX_PARTICIPANTS } from '../peer';
-import { PlayerAvatar } from './PlayerAvatar';
+import { getPlayerColor } from '../names';
 
 interface ParticipantViewProps {
   sessionName: string;
@@ -65,16 +65,27 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
     }
   };
 
+  // Buzzer states sit on the player-colored ground. The live buzzer is
+  // WHITE with the player's color as text — maximum pop on every jersey
+  // (a green button would melt into the teal player's background).
   const buzzerStateClass = canBuzz
-    ? 'bg-[var(--color-green)] text-white border-emerald-400 active:scale-95 active:shadow-inner cursor-pointer'
+    ? 'bg-white border-white/50 active:scale-95 active:shadow-inner cursor-pointer'
     : isMeAnswering
       ? 'bg-[var(--color-yellow)] text-slate-900 border-yellow-300 animate-spring-bounce cursor-default'
       : isMeQueued
-        ? 'bg-[var(--color-blue)] text-white border-sky-400 cursor-default'
-        : 'bg-neutral-500/20 theme-text-secondary border-neutral-500/10 cursor-not-allowed shadow-none';
+        ? 'bg-white/15 text-white border-white/30 cursor-default'
+        : 'bg-black/25 text-white/75 border-white/10 cursor-not-allowed shadow-none';
+
+  const myColor = getPlayerColor(myName);
 
   return (
-    <div className="flex flex-col flex-1 animate-fade-slide-up">
+    // The whole screen wears the player's color — their "jersey".
+    <div
+      className="flex flex-col flex-1 animate-fade-slide-up"
+      style={{
+        background: `linear-gradient(180deg, ${myColor.strong} 0%, color-mix(in srgb, ${myColor.strong} 80%, black) 100%)`
+      }}
+    >
       {/* Header */}
       <header className="sticky top-0 z-10 px-4 py-3 border-b theme-border theme-bg-surface flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2">
@@ -104,15 +115,12 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center max-w-lg mx-auto w-full">
-        {/* Player identity */}
-        <div className="mb-4 sm:mb-6 flex flex-col items-center gap-1.5">
-          <div className="flex items-center gap-2.5">
-            <PlayerAvatar name={myName} size="md" />
-            <h2 className="text-xl font-extrabold theme-text-primary">
-              {myName}
-            </h2>
-          </div>
-          <p className="text-xs font-mono-jetbrains tracking-wider theme-text-secondary">
+        {/* Player identity — the colored screen IS the avatar */}
+        <div className="mb-4 sm:mb-6 flex flex-col items-center gap-1">
+          <h2 className="text-2xl font-black text-white drop-shadow-sm">
+            {myName}
+          </h2>
+          <p className="text-xs font-mono-jetbrains tracking-wider text-white/70">
             CODE: {inviteCode}
           </p>
         </div>
@@ -123,17 +131,18 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         <div className="relative w-[min(20rem,84vw,46dvh)] aspect-square my-2 sm:my-4 flex items-center justify-center">
           {/* Pulsing ring while this player can still buzz */}
           {canBuzz && (
-            <div className="absolute inset-0 rounded-full bg-[var(--color-green)] opacity-20 animate-pulse-green pointer-events-none" aria-hidden="true" />
+            <div className="absolute inset-0 rounded-full bg-white opacity-15 animate-pulse-green pointer-events-none" aria-hidden="true" />
           )}
 
           <button
             ref={buzzButtonRef}
             disabled={sessionState.status === 'finished' || isWaiting || isMeAnswering || isMeQueued}
             onClick={handleBuzz}
+            style={canBuzz ? { color: myColor.strong } : undefined}
             className={`
               w-[min(18rem,75vw,41dvh)] aspect-square rounded-full font-black text-3xl sm:text-4xl tracking-wider select-none
               flex flex-col items-center justify-center gap-1 border-8 shadow-2xl transition-all duration-150
-              outline-none focus:ring-4 focus:ring-offset-2 focus:ring-offset-[var(--bg-primary)] focus:ring-[var(--color-blue)]
+              outline-none focus:ring-4 focus:ring-white/60
               ${buzzerStateClass}
               ${buttonFlash ? 'brightness-150 scale-105' : ''}
               ${hasShaked ? 'animate-shake' : ''}
@@ -141,7 +150,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
           >
             {canBuzz && (
               <>
-                <Zap className="w-12 h-12 fill-white animate-bounce" aria-hidden="true" />
+                <Zap className="w-12 h-12 fill-current animate-bounce" aria-hidden="true" />
                 <span>BUZZ!</span>
               </>
             )}
@@ -171,28 +180,27 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         {/* Player Status Message */}
         <div className="h-12 flex items-center justify-center mt-2 sm:mt-4" role="status" aria-live="polite">
           {canBuzz && queue.length === 0 && (
-            <p className="theme-text-primary font-semibold text-lg animate-pulse">
+            <p className="text-white font-semibold text-lg animate-pulse">
               Know the answer? Buzz!
             </p>
           )}
           {isMeAnswering && (
-            <p className="text-[var(--text-accent-yellow)] font-bold text-lg animate-bounce">
+            <p className="text-white font-bold text-lg animate-bounce drop-shadow-sm">
               Give your answer!
             </p>
           )}
           {!isMeAnswering && answering && (
-            <p className="theme-text-secondary text-sm flex items-center gap-1.5">
-              <PlayerAvatar name={answering} size="xs" />
-              <span>{answering} is answering</span>
+            <p className="text-white/85 text-sm">
+              {answering} is answering
             </p>
           )}
         </div>
 
         {/* Score display */}
-        <div className="mt-4 sm:mt-8 theme-bg-surface border theme-border rounded-2xl px-6 py-3 sm:py-4 shadow-sm inline-flex items-center gap-3">
-          <Award className="w-5 h-5 text-[var(--text-accent-yellow)]" aria-hidden="true" />
-          <span className="font-semibold theme-text-secondary text-sm">Your Score:</span>
-          <span className="text-2xl font-black font-mono-jetbrains tabular-nums theme-text-primary transition-all duration-300">
+        <div className="mt-4 sm:mt-8 bg-white/10 border border-white/20 rounded-2xl px-6 py-3 sm:py-4 shadow-sm inline-flex items-center gap-3">
+          <Award className="w-5 h-5 text-yellow-300" aria-hidden="true" />
+          <span className="font-semibold text-white/80 text-sm">Your Score:</span>
+          <span className="text-2xl font-black font-mono-jetbrains tabular-nums text-white transition-all duration-300">
             {myScore}
           </span>
         </div>

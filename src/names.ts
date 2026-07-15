@@ -27,6 +27,8 @@ export interface PlayerColor {
   bg: string;
   /** Stronger tint for borders/rings */
   border: string;
+  /** Deep full-bleed background (white text stays >=4.5:1), same in both themes */
+  strong: string;
 }
 
 /**
@@ -44,7 +46,8 @@ export function getPlayerColor(name: string): PlayerColor {
   return {
     fg: `var(--player-${n})`,
     bg: `color-mix(in srgb, var(--player-${n}) 14%, transparent)`,
-    border: `color-mix(in srgb, var(--player-${n}) 45%, transparent)`
+    border: `color-mix(in srgb, var(--player-${n}) 45%, transparent)`,
+    strong: `var(--player-${n}-strong)`
   };
 }
 
