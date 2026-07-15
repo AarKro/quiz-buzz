@@ -119,7 +119,7 @@ export default function App() {
             myScore={participant.myScore}
             onBuzz={participant.buzz}
             onLeave={handleParticipantLeave}
-            themeToggle={themeToggle}
+            themeToggle={<ThemeToggle darkMode={darkMode} onToggle={toggleTheme} onColor />}
           />
         )}
 

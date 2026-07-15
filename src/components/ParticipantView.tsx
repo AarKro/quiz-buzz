@@ -86,10 +86,10 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         background: `linear-gradient(180deg, ${myColor.strong} 0%, color-mix(in srgb, ${myColor.strong} 80%, black) 100%)`
       }}
     >
-      {/* Header */}
-      <header className="sticky top-0 z-10 px-4 py-3 border-b theme-border theme-bg-surface flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="p-1 rounded bg-[var(--color-aubergine)] text-white">
+      {/* Header — transparent, part of the jersey background */}
+      <header className="px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-white">
+          <span className="p-1 rounded-md bg-white/15">
             <Zap className="w-4 h-4 fill-current" aria-hidden="true" />
           </span>
           <span className="font-bold text-sm truncate max-w-[150px] sm:max-w-[300px]">
@@ -97,14 +97,14 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
           </span>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="h-9 flex items-center gap-1.5 text-xs font-semibold theme-text-secondary bg-[var(--bg-primary)] px-2.5 rounded-full border theme-border">
+          <div className="h-9 flex items-center gap-1.5 text-xs font-semibold text-white/85 bg-white/10 px-2.5 rounded-full border border-white/25">
             <Users className="w-3.5 h-3.5" aria-hidden="true" />
             <span>{participantCount}/{MAX_PARTICIPANTS}</span>
           </div>
           {themeToggle}
           <button
             onClick={onLeave}
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--text-accent-red)] hover:bg-red-500/10 transition cursor-pointer"
+            className="h-9 w-9 flex items-center justify-center rounded-lg border border-white/25 bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
             title="Leave Session"
             aria-label="Leave Session"
           >
