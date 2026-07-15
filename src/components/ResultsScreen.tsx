@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Trophy, Crown, Play, Sparkles, FastForward, Home } from 'lucide-react';
+import { PlayerAvatar } from './PlayerAvatar';
 
 interface ResultsScreenProps {
   scores: Record<string, number>;
@@ -180,21 +181,22 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ scores, onRestart,
                       : 'theme-border theme-bg-surface'}
                   `}
                 >
-                  <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0">
                     <span className={`
-                      w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0
+                      w-8 h-8 rounded-full flex items-center justify-center font-bold font-mono-jetbrains text-xs flex-shrink-0
                       ${highlightWinner
                         ? 'bg-[var(--color-yellow)] text-slate-900'
                         : 'bg-slate-500/10 theme-text-primary'}
                     `}>
                       {highlightWinner ? <Crown className="w-4.5 h-4.5 fill-current" aria-hidden="true" /> : displayIndex}
                     </span>
+                    <PlayerAvatar name={player.name} size="sm" />
                     <span className={`font-extrabold truncate ${highlightWinner ? 'text-lg text-[var(--text-accent-yellow)]' : 'theme-text-primary'}`}>
                       {player.name}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`font-black text-lg ${highlightWinner ? 'text-xl theme-text-primary' : 'theme-text-secondary'}`}>
+                    <span className={`font-black font-mono-jetbrains tabular-nums text-lg ${highlightWinner ? 'text-xl theme-text-primary' : 'theme-text-secondary'}`}>
                       {player.score}
                     </span>
                     <span className="text-xs font-semibold theme-text-secondary uppercase">pts</span>

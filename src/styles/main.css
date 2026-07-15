@@ -37,10 +37,16 @@
     --text-accent-green: #007a5a;  /* 5.0:1 */
     --text-accent-red: #b3134a;    /* 6.4:1 (raw #e01e5a is 4.4:1) */
 
-    /* Participant colored chips */
-    --color-orange: #de8300;
-    --color-teal: #0f7b6c;
-    --color-purple: #6f42c1;
+    /*
+     * Player identity colors. Assigned per player (by name hash) and used
+     * everywhere that player appears: roster, buzz cards, results, their own
+     * screen. Light-mode values below (all >=4.5:1 on primary & surface);
+     * dark-mode overrides further down.
+     */
+    --player-1: #9a5b0a; /* orange */
+    --player-2: #0f7b6c; /* teal   */
+    --player-3: #6f42c1; /* purple */
+    --player-4: #1264a3; /* blue   */
   }
 
   /* Respect prefers-color-scheme by default, overridden by .dark class on <html> */
@@ -57,6 +63,11 @@
       --text-accent-blue: #59a9e0;   /* 6.6:1 (raw #1264a3 is 2.7:1) */
       --text-accent-green: #2eb886;  /* 6.7:1 (raw #007a5a is 3.2:1) */
       --text-accent-red: #ff7699;    /* 6.7:1 (raw #e01e5a is 3.6:1) */
+
+      --player-1: #e5943b;
+      --player-2: #2dd4bf;
+      --player-3: #a78bfa;
+      --player-4: #59a9e0;
     }
   }
 
@@ -73,6 +84,11 @@
     --text-accent-blue: #59a9e0;
     --text-accent-green: #2eb886;
     --text-accent-red: #ff7699;
+
+    --player-1: #e5943b;
+    --player-2: #2dd4bf;
+    --player-3: #a78bfa;
+    --player-4: #59a9e0;
   }
 
   html.light-mode {
@@ -87,6 +103,11 @@
     --text-accent-blue: #1264a3;
     --text-accent-green: #007a5a;
     --text-accent-red: #b3134a;
+
+    --player-1: #9a5b0a;
+    --player-2: #0f7b6c;
+    --player-3: #6f42c1;
+    --player-4: #1264a3;
   }
 
   body {

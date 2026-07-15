@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Users, Zap, Award, LogOut } from 'lucide-react';
 import { SessionState, MAX_PARTICIPANTS } from '../peer';
+import { PlayerAvatar } from './PlayerAvatar';
 
 interface ParticipantViewProps {
   sessionName: string;
@@ -103,12 +104,15 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center max-w-lg mx-auto w-full">
-        {/* Welcome card */}
-        <div className="mb-4 sm:mb-6">
-          <h2 className="text-xl font-extrabold theme-text-primary">
-            {myName}
-          </h2>
-          <p className="text-xs font-mono-jetbrains tracking-wider text-[var(--text-accent-blue)] mt-1 bg-blue-500/5 px-2 py-0.5 rounded border border-blue-500/10 inline-block">
+        {/* Player identity */}
+        <div className="mb-4 sm:mb-6 flex flex-col items-center gap-1.5">
+          <div className="flex items-center gap-2.5">
+            <PlayerAvatar name={myName} size="md" />
+            <h2 className="text-xl font-extrabold theme-text-primary">
+              {myName}
+            </h2>
+          </div>
+          <p className="text-xs font-mono-jetbrains tracking-wider theme-text-secondary">
             CODE: {inviteCode}
           </p>
         </div>
@@ -151,7 +155,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 
             {isMeQueued && (
               <>
-                <span className="text-5xl sm:text-6xl">#{myQueuePosition + 1}</span>
+                <span className="text-5xl sm:text-6xl font-mono-jetbrains">#{myQueuePosition + 1}</span>
                 <span className="text-sm font-semibold uppercase tracking-wider opacity-80">in line</span>
               </>
             )}
@@ -177,8 +181,9 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
             </p>
           )}
           {!isMeAnswering && answering && (
-            <p className="theme-text-secondary text-sm">
-              {answering} is answering
+            <p className="theme-text-secondary text-sm flex items-center gap-1.5">
+              <PlayerAvatar name={answering} size="xs" />
+              <span>{answering} is answering</span>
             </p>
           )}
         </div>
@@ -187,7 +192,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         <div className="mt-4 sm:mt-8 theme-bg-surface border theme-border rounded-2xl px-6 py-3 sm:py-4 shadow-sm inline-flex items-center gap-3">
           <Award className="w-5 h-5 text-[var(--text-accent-yellow)]" aria-hidden="true" />
           <span className="font-semibold theme-text-secondary text-sm">Your Score:</span>
-          <span className="text-2xl font-black theme-text-primary transition-all duration-300">
+          <span className="text-2xl font-black font-mono-jetbrains tabular-nums theme-text-primary transition-all duration-300">
             {myScore}
           </span>
         </div>
