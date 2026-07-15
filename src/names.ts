@@ -18,16 +18,41 @@ export function generateRandomName(): string {
   return `${adj} ${anim}`;
 }
 
+const PLAYER_COLOR_COUNT = 4;
+
+export interface PlayerColor {
+  /** Solid, theme-aware, AA-contrast text/icon color */
+  fg: string;
+  /** Soft tint for avatar/chip backgrounds */
+  bg: string;
+  /** Stronger tint for borders/rings */
+  border: string;
+  /** Deep full-bleed background (white text stays >=4.5:1), same in both themes */
+  strong: string;
+}
+
 /**
- * Returns a CSS hex/variable style configuration for a participant based on join order
+ * Deterministic per-player color, derived from the display name so the host
+ * roster, the buzz-queue cards, the results screen and the player's own
+ * screen all agree without any extra protocol traffic. Values resolve
+ * through the theme-aware --player-N tokens in main.css.
  */
-export function getParticipantColor(index: number): { name: string; bg: string; text: string } {
-  // Orange, Teal, Purple, Blue rotating
-  const palette = [
-    { name: 'Orange', bg: 'rgba(222, 131, 0, 0.15)', text: '#de8300' },
-    { name: 'Teal', bg: 'rgba(15, 123, 108, 0.15)', text: '#0f7b6c' },
-    { name: 'Purple', bg: 'rgba(111, 66, 193, 0.15)', text: '#6f42c1' },
-    { name: 'Blue', bg: 'rgba(18, 100, 163, 0.15)', text: '#1264a3' }
-  ];
-  return palette[index % palette.length];
+export function getPlayerColor(name: string): PlayerColor {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  }
+  const n = (hash % PLAYER_COLOR_COUNT) + 1;
+  return {
+    fg: `var(--player-${n})`,
+    bg: `color-mix(in srgb, var(--player-${n}) 14%, transparent)`,
+    border: `color-mix(in srgb, var(--player-${n}) 45%, transparent)`,
+    strong: `var(--player-${n}-strong)`
+  };
+}
+
+/** "Sleepy Otter" -> "SO", "Max" -> "M" */
+export function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase();
 }
