@@ -2,12 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Users, Zap, Award, LogOut } from 'lucide-react';
 import { SessionState, MAX_PARTICIPANTS } from '../peer';
 import { getPlayerColor } from '../names';
+import { PlayerListSheet } from './PlayerListSheet';
 
 interface ParticipantViewProps {
   sessionName: string;
   inviteCode: string;
   myName: string;
-  participantCount: number;
+  participantNames: string[];
   sessionState: SessionState;
   myScore: number;
   onBuzz: () => void;
@@ -19,7 +20,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
   sessionName,
   inviteCode,
   myName,
-  participantCount,
+  participantNames,
   sessionState,
   myScore,
   onBuzz,
@@ -28,7 +29,9 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 }) => {
   const [hasShaked, setHasShaked] = useState(false);
   const [buttonFlash, setButtonFlash] = useState(false);
+  const [showPlayers, setShowPlayers] = useState(false);
   const buzzButtonRef = useRef<HTMLButtonElement>(null);
+  const participantCount = Math.max(participantNames.length, 1);
 
   const queue = sessionState.status === 'ready' ? sessionState.queue : [];
   const myQueuePosition = queue.indexOf(myName); // -1 = not in line
@@ -97,10 +100,14 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
           </span>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="h-9 flex items-center gap-1.5 text-xs font-semibold text-white/85 bg-white/10 px-2.5 rounded-full border border-white/25">
+          <button
+            onClick={() => setShowPlayers(true)}
+            aria-label={`Show all ${participantCount} players`}
+            className="h-9 flex items-center gap-1.5 text-xs font-semibold text-white/85 bg-white/10 hover:bg-white/20 px-2.5 rounded-full border border-white/25 transition cursor-pointer"
+          >
             <Users className="w-3.5 h-3.5" aria-hidden="true" />
             <span>{participantCount}/{MAX_PARTICIPANTS}</span>
-          </div>
+          </button>
           {themeToggle}
           <button
             onClick={onLeave}
@@ -205,6 +212,14 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
           </span>
         </div>
       </main>
+
+      <PlayerListSheet
+        open={showPlayers}
+        onClose={() => setShowPlayers(false)}
+        names={participantNames}
+        myName={myName}
+        queue={queue}
+      />
     </div>
   );
 };

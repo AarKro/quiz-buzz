@@ -234,6 +234,22 @@
   animation: card-enter 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+}
+
+.animate-sheet-up {
+  animation: sheet-up 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+.animate-fade-in {
+  animation: fade-in 200ms ease-out;
+}
+
 .animate-swipe-out {
   animation: swipe-out-right 350ms cubic-bezier(0.55, 0, 1, 0.45) forwards;
 }
@@ -259,7 +275,9 @@
   .animate-spring-bounce,
   .animate-float,
   .animate-card-enter,
-  .animate-swipe-out {
+  .animate-swipe-out,
+  .animate-sheet-up,
+  .animate-fade-in {
     animation: none;
   }
 }

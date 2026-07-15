@@ -114,7 +114,7 @@ export default function App() {
             sessionName={participant.sessionName}
             inviteCode={participant.inviteCode}
             myName={participant.assignedName}
-            participantCount={participant.participantCount}
+            participantNames={participant.participantNames}
             sessionState={participant.sessionState}
             myScore={participant.myScore}
             onBuzz={participant.buzz}

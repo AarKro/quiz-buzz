@@ -25,7 +25,8 @@ export function useParticipantSession() {
   const [sessionName, setSessionName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [myScore, setMyScore] = useState(0);
-  const [participantCount, setParticipantCount] = useState(1);
+  // Roster as last broadcast by the host, in join order
+  const [participantNames, setParticipantNames] = useState<string[]>([]);
   const [sessionState, setSessionStateState] = useState<SessionState>({ status: 'waiting' });
 
   const peerRef = useRef<Peer | null>(null);
@@ -83,7 +84,7 @@ export function useParticipantSession() {
         setSessionState(msg.state);
         break;
       case 'PARTICIPANT_LIST':
-        setParticipantCount(msg.names.length);
+        setParticipantNames(msg.names);
         break;
       case 'SCORE_UPDATE':
         if (msg.name === assignedNameRef.current) {
@@ -101,7 +102,7 @@ export function useParticipantSession() {
     setErrorMessage(null);
     setStatus('connecting');
     setMyScore(0);
-    setParticipantCount(1);
+    setParticipantNames([]);
     setAssignedName('');
     assignedNameRef.current = '';
     setSessionName('');
@@ -166,7 +167,8 @@ export function useParticipantSession() {
     sessionName,
     inviteCode,
     myScore,
-    participantCount,
+    participantNames,
+    participantCount: Math.max(participantNames.length, 1),
     sessionState,
     join,
     buzz,
