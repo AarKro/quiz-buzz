@@ -6,7 +6,6 @@ import { PlayerListSheet } from './PlayerListSheet';
 
 interface ParticipantViewProps {
   sessionName: string;
-  inviteCode: string;
   myName: string;
   participantNames: string[];
   sessionState: SessionState;
@@ -18,7 +17,6 @@ interface ParticipantViewProps {
 
 export const ParticipantView: React.FC<ParticipantViewProps> = ({
   sessionName,
-  inviteCode,
   myName,
   participantNames,
   sessionState,
@@ -123,13 +121,10 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center max-w-lg mx-auto w-full">
         {/* Player identity — the colored screen IS the avatar */}
-        <div className="mb-4 sm:mb-6 flex flex-col items-center gap-1">
+        <div className="mb-4 sm:mb-6">
           <h2 className="text-2xl font-black text-white drop-shadow-sm">
             {myName}
           </h2>
-          <p className="text-xs font-mono-jetbrains tracking-wider text-white/70">
-            CODE: {inviteCode}
-          </p>
         </div>
 
         {/* Big Buzzer Button Container. Sized against BOTH width and dynamic
@@ -203,11 +198,12 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
           )}
         </div>
 
-        {/* Score display */}
-        <div className="mt-4 sm:mt-8 bg-white/10 border border-white/20 rounded-2xl px-6 py-3 sm:py-4 shadow-sm inline-flex items-center gap-3">
-          <Award className="w-5 h-5 text-yellow-300" aria-hidden="true" />
-          <span className="font-semibold text-white/80 text-sm">Your Score:</span>
-          <span className="text-2xl font-black font-mono-jetbrains tabular-nums text-white transition-all duration-300">
+        {/* Score readout — plain scoreboard text, deliberately not a button-like chip */}
+        <div className="mt-4 sm:mt-6 flex flex-col items-center gap-0.5">
+          <span className="text-[10px] font-mono-jetbrains font-bold uppercase tracking-[0.25em] text-white/60">
+            Score
+          </span>
+          <span className="text-4xl font-black font-mono-jetbrains tabular-nums text-white transition-all duration-300">
             {myScore}
           </span>
         </div>

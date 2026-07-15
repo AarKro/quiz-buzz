@@ -112,7 +112,6 @@ export default function App() {
         {role === 'participant' && !participantFinished && (
           <ParticipantView
             sessionName={participant.sessionName}
-            inviteCode={participant.inviteCode}
             myName={participant.assignedName}
             participantNames={participant.participantNames}
             sessionState={participant.sessionState}
